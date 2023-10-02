@@ -1,12 +1,24 @@
 import urllib
 import datetime
+import os
 import pandas as pd
+
+def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text):
+    path_for_file = r'Csv\NOAA_ID'+str(i)+'_'+date_and_time_time+'.csv'
+    with open(path_for_file,'wb') as out:
+        print("Started writing!")
+        out.write(text.encode())
+        print("Done writing!")
+    return path_for_file
+
 
 print("VHI is started...")
 
 # http = urllib3.PoolManager()
 
-for i in range(1,3):
+# print(os.path.curdir)
+
+for i in range(1,28):
     print(f"Creating NOAA with id {i}")
     url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_TS_admin.php?provinceID="+str(i)+"&country=UKR&yearlyTag=Weekly&type=Mean&TagCropland=land&year1=1982&year2=2023"
     vhi_url = urllib.request.urlopen(url)
@@ -24,15 +36,17 @@ for i in range(1,3):
     now = datetime.datetime.now()
     date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
     print("Done reading and adapting!")
-    path_for_file = r'Csv\NOAA_ID'+str(i)+'_'+date_and_time_time+'.csv'
-    with open(path_for_file,'wb') as out:
-        print("Started writing!")
-        out.write(text.encode())
-        print("Done writing!")
-    
+    if os.path.exists('Csv\\'):
+        path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text)
+    else:
+        print("Directory 'Csv' is missing...")
+        print("Creating directory 'Csv'...")
+        os.mkdir('Csv\\')
+        print("Done creating directory 'Csv'!")
+        path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text)
     print("Started reading csv!")
     df = pd.read_csv(path_for_file, index_col=None, header=1)
-    print(df)
+    print(df.head())
     print("Done reading csv!")
     
     print("Done!")
