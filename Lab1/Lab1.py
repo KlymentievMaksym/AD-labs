@@ -12,20 +12,27 @@ for i in range(1,3):
     vhi_url = urllib.request.urlopen(url)
     print("Started reading and adapting!")
     text = vhi_url.read()
-    text = str(text)
+    text = text.decode()
+    # print(type(text))
+    text = text.replace("b'","")
+    text = text.replace("'","")
+    text = text.replace(",  from 1982 to 2023,","  from 1982 to 2023")
     text = text.replace(",\n","\n")
     text = text.replace("</pre></tt>","")
     text = text.replace("<tt><pre>","")
+    text = text.replace("<br>","")
     now = datetime.datetime.now()
     date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
     print("Done reading and adapting!")
-    with open(r'Csv\NOAA_ID'+str(i)+'_'+date_and_time_time+'.csv','wb') as out:
+    path_for_file = r'Csv\NOAA_ID'+str(i)+'_'+date_and_time_time+'.csv'
+    with open(path_for_file,'wb') as out:
         print("Started writing!")
-        out.write(bytes(text, "UTF-8"))
+        out.write(text.encode())
         print("Done writing!")
     
     print("Started reading csv!")
-    df = pd.read_csv(url, index_col='year', header=1)
+    df = pd.read_csv(path_for_file, index_col=None, header=1)
+    print(df)
     print("Done reading csv!")
     
     print("Done!")
