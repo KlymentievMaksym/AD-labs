@@ -147,21 +147,46 @@ def create_VHI_dataset():
         print("Done!")
         print("VHI is downloaded...")
 
-def VHI_area_year_extremum(dataframe, area_index, year):
+def VHI_area_year_extremum(dataframe, year): # , area_index
     df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
     print(df)
     print("Min:", df.min())
     print("Max:", df.max())
     main_menu()
 
-def VHI_area_extreme_drought_by_percent(dataframe, area_index): # , percent
+def VHI_area_extreme_drought_by_percent(dataframe): # , percent, area_index
     df_drought = dataframe[(dataframe.VHI <= 15)] #  & (df.VHI != -1)
     print(df_drought)
     main_menu()
 
-def VHI_area_average_drought_by_percent(dataframe, area_index): # , percent
+def VHI_area_average_drought_by_percent(dataframe): # , percent, area_index
     df_drought = dataframe[(dataframe.VHI <= 35)] #  & (df.VHI != -1)
     print(df_drought)
+    main_menu()
+
+def VHI_data(dataframe, float_number, difference):
+    diff = ["<", ">", "<=", ">="]
+    try:
+        float_number = float(float_number)
+    except ValueError:
+        float_number = float_number.split()
+    if difference in diff and type(float_number) == float:
+        if difference == "<":
+            df = dataframe[dataframe.VHI < float_number]
+        if difference == ">":
+            df = dataframe[dataframe.VHI > float_number]
+        if difference == "<=":
+            df = dataframe[dataframe.VHI <= float_number]
+        if difference == ">=":
+            df = dataframe[dataframe.VHI >= float_number]
+    elif difference == "" and type(float_number) == list:
+        int1 = float(float_number[0])
+        int2 = float(float_number[1])
+        df = dataframe[(dataframe.VHI >= int1) & (dataframe.VHI <= int2)]['VHI']
+    else:
+        print("Operation was unsuccesful!")
+        df = dataframe
+    print(df)
     main_menu()
 
 def main_menu():
@@ -173,9 +198,10 @@ def main_menu():
               "1" to view VHI by area and year, also to get extremums from it
               "2" to view VHI by area and when it was extreme drought
               "3" to view VHI by area and when it was average drought
-              "4" to view config.txt
-              "5" to clear config.txt
-              "6" to reload csv files""")
+              "4" to view VHI in diffences (like VHI > 10.5 or 50 <= VHI <= 100)
+              "5" to view config.txt
+              "6" to clear config.txt
+              "7" to reload csv files""")
         main_menu()
     elif request == "1":
         area_index = int(input('Enter id of province: '))
@@ -184,28 +210,36 @@ def main_menu():
         year = int(input('Enter year: '))
         while year > 2023 or year < 1982:
             year = int(input('Enter year: '))
-        VHI_area_year_extremum(dict_for_df[area_index], area_index, year)
+        VHI_area_year_extremum(dict_for_df[area_index], year) # , area_index
     elif request == "2":
         area_index = int(input('Enter id of province: '))
         while area_index > 27 or area_index < 1:
             area_index = int(input('Enter id of province: '))
         print(dict_for_our_id[area_index])
         # percent = input('Enter percent: ')
-        VHI_area_extreme_drought_by_percent(dict_for_df[area_index], area_index) # , percent
+        VHI_area_extreme_drought_by_percent(dict_for_df[area_index]) # , percent, area_index
     elif request == "3":
+         area_index = int(input('Enter id of province: '))
+         while area_index > 27 or area_index < 1:
+             area_index = int(input('Enter id of province: '))
+         # percent = input('Enter percent: ')
+         print(dict_for_our_id[area_index])
+         VHI_area_average_drought_by_percent(dict_for_df[area_index]) # , percent, area_index
+    elif request == "4":
         area_index = int(input('Enter id of province: '))
         while area_index > 27 or area_index < 1:
             area_index = int(input('Enter id of province: '))
-        # percent = input('Enter percent: ')
+        number_or_list_of_2_numbers = input('Enter number or 2 numbers by space: ')
+        diff = input('Enter "<", ">", "<=", ">=" or leave empty: ')
         print(dict_for_our_id[area_index])
-        VHI_area_average_drought_by_percent(dict_for_df[area_index], area_index) # , percent
-    elif request == "4":
+        VHI_data(dict_for_df[area_index], number_or_list_of_2_numbers, diff)
+    elif request == "5":
         print(config.read())
         main_menu()
-    elif request == "5":
+    elif request == "6":
         config.clear()
         main_menu()
-    elif request == "6":
+    elif request == "7":
         create_VHI_dataset()
         main_menu()
     elif request == "0":
