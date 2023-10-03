@@ -102,24 +102,31 @@ for i in range(1,28):
     print("VHI is downloaded...")
 
 def VHI_area_year_extremum(dataframe, area_index, year):
-    pass
+    df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
+    print(df)
+    print("Min:", df.min())
+    print("Max:", df.max())
+    main_menu()
 
-def VHI_area_extreme_dry_by_percent(dataframe, area_index, percent):
-    pass
+def VHI_area_extreme_drought_by_percent(dataframe, area_index, percent):
+    df_drought = df[(df.VHI <= 15)] #  & (df.VHI != -1)
+    print(df_drought)
+    main_menu()
 
-def VHI_area_average_dry_by_percent(dataframe, area_index, percent):
-    pass
+def VHI_area_average_drought_by_percent(dataframe, area_index, percent):
+    df_drought = df[(df.VHI <= 35)] #  & (df.VHI != -1)
+    print(df_drought)
+    main_menu()
 
 def main_menu():
-    request = input('\nWhat exactly do you want? ("h" for help)\n')
+    request = input('What exactly do you want? ("h" for help): ')
     if request == "h":
         print("""
-              \n"h" to get help\n
-              "0" to exit from application\n
-              "1" to view VHI by area and year, also to get extremums from it\n
-              "2" to view VHI by area and when it was extreme dry by percent\n
-              "3" to view VHI by area and when it was average dry by percent
-              """)
+              "h" to get help
+              "0" to exit from application
+              "1" to view VHI by area and year, also to get extremums from it
+              "2" to view VHI by area and when it was extreme drought by percent
+              "3" to view VHI by area and when it was average drought by percent""")
         main_menu()
     elif request == "1":
         area_index = int(input('Enter id of province: '))
@@ -128,19 +135,18 @@ def main_menu():
     elif request == "2":
         area_index = int(input('Enter id of province: '))
         percent = input('Enter percent: ')
-        VHI_area_extreme_dry_by_percent(dict_for_df[area_index], area_index, percent)
+        VHI_area_extreme_drought_by_percent(dict_for_df[area_index], area_index, percent)
     elif request == "3":
         area_index = int(input('Enter id of province: '))
         percent = input('Enter percent: ')
-        VHI_area_average_dry_by_percent(dict_for_df[area_index], area_index, percent)
+        VHI_area_average_drought_by_percent(dict_for_df[area_index], area_index, percent)
     elif request == "0":
         sys.exit()
     else:
         main_menu()
     # area_index = input()
 
-
-# print(df[(df["area"] == index) & (df["Year"] == year)]['VHI'].describe())
+main_menu()
 # df_drought = df[(df.VHI <= 15) & (df.VHI != -1)]
 # min_v = df[(df.Year.astype(str)==str(i)) & (df.VHI != -1)]['VHI'].min()
 
