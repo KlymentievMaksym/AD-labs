@@ -11,12 +11,48 @@ def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text):
         print("Done writing!")
     return path_for_file
 
+def find_needed_id_for_province_in_dict(dictionary, province):
+    # print(f"Received name: {province}")
+    for j in range(1, len(dictionary)+1):
+        # print(f"{province} == {dictionary[j]}, {province == dictionary[j]}")
+        if province == dictionary[j]:
+            return j
+    raise NameError("Can't find province")
 
 print("VHI is started...")
 
-# http = urllib3.PoolManager()
+# dict_for_NOAA_id = dict()
+headers = ['Year', 'Week', 'SMN', 'SMT', 'VCI', 'TCI', 'VHI']
+dict_for_our_id = {
+    1:"Vinnytsya",
+    2:"Volyn",
+    3:"Dnipropetrovsk",
+    4:"Donetsk",
+    5:"Zhytomyr",
+    6:"Transcarpathia",
+    7:"Zaporizhzhya",
+    8:"Ivano-Frankivsk",
+    9:"Kiev",
+    10:"Kirovohrad",
+    11:"Luhansk",
+    12:"Lviv",
+    13:"Mykolayiv",
+    14:"Odessa",
+    15:"Poltava",
+    16:"Rivne",
+    17:"Sumy",
+    18:"Ternopil",
+    19:"Kharkiv",
+    20:"Kherson",
+    21:"Khmelnytskyy",
+    22:"Cherkasy",
+    23:"Chernihiv",
+    24:"Chernivtsi",
+    25:"Crimea",
+    26:"Kiev City",
+    27:"Sevastopol"
+                   }
 
-# print(os.path.curdir)
 
 for i in range(1,28):
     print(f"Creating NOAA with id {i}")
@@ -33,6 +69,11 @@ for i in range(1,28):
     text = text.replace("</pre></tt>","")
     text = text.replace("<tt><pre>","")
     text = text.replace("<br>","")
+    location_of_name_start = text.find(f"{i}: ")
+    location_of_name_end = text.find("  from")
+    name_of_province = text[location_of_name_start+3:location_of_name_end]
+    needed_id = find_needed_id_for_province_in_dict(dict_for_our_id, name_of_province.strip())
+    # dict_for_NOAA_id[i] = name_of_province.strip()
     now = datetime.datetime.now()
     date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
     print("Done reading and adapting!")
@@ -45,7 +86,10 @@ for i in range(1,28):
         print("Done creating directory 'Csv'!")
         path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text)
     print("Started reading csv!")
-    df = pd.read_csv(path_for_file, index_col=None, header=1)
+    df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
+    df = df.drop(df.loc[df['VHI'] == -1].index)
+    df['Area'] = i
+    df["Area"].replace({i:needed_id}, inplace = True)
     print(df.head())
     print("Done reading csv!")
     
