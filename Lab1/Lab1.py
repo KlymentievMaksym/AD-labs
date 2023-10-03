@@ -11,11 +11,12 @@ def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text):
         print("Done writing!")
     return path_for_file
 
-def find_needed_id_for_province_in_dict(dictionary, province):
+def find_needed_id_for_province_in_dict(dictionary, province, province_index_NOAA, dictionary_for_transfer):
     # print(f"Received name: {province}")
     for j in range(1, len(dictionary)+1):
         # print(f"{province} == {dictionary[j]}, {province == dictionary[j]}")
         if province == dictionary[j]:
+            dictionary_for_transfer[j] = province_index_NOAA
             return j
     raise NameError("Can't find province")
 
@@ -52,7 +53,8 @@ dict_for_our_id = {
     26:"Kiev City",
     27:"Sevastopol"
                    }
-
+dict_for_transfer = dict()
+dict_for_df = dict()
 
 for i in range(1,28):
     print(f"Creating NOAA with id {i}")
@@ -72,7 +74,7 @@ for i in range(1,28):
     location_of_name_start = text.find(f"{i}: ")
     location_of_name_end = text.find("  from")
     name_of_province = text[location_of_name_start+3:location_of_name_end]
-    needed_id = find_needed_id_for_province_in_dict(dict_for_our_id, name_of_province.strip())
+    needed_id = find_needed_id_for_province_in_dict(dict_for_our_id, name_of_province.strip(), i, dict_for_transfer)
     # dict_for_NOAA_id[i] = name_of_province.strip()
     now = datetime.datetime.now()
     date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
@@ -87,27 +89,29 @@ for i in range(1,28):
         path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text)
     print("Started reading csv!")
     df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
+    # print(df.head())
+    print("Done reading csv!")
+    print("Started deleting NANs and adding our area index...")
     df = df.drop(df.loc[df['VHI'] == -1].index)
     df['Area'] = i
     df["Area"].replace({i:needed_id}, inplace = True)
-    print(df.head())
-    print("Done reading csv!")
-    
+    dict_for_df[needed_id] = df
+    print("Done deleting NANs and adding our area index!")
     print("Done!")
+    print("VHI is downloaded...")
+
+def VHI_area_year_extremum(dataframe, area_index, year):
+    pass
+
+def VHI_area_extreme_dry_by_percent(dataframe, area_index, percent):
+    pass
+
+def VHI_area_average_dry_by_percent(dataframe, area_index, percent):
+    pass
     
-# with open(url, "r")as cher:
-#     txt = cher.read()
 
-# print(txt)
-# txt = txt.replace(",\n","\n")
-# print(txt)
-# with open(url, "w")as cher:
-#     cher.write(txt)
+# print(df[(df["area"] == index) & (df["Year"] == year)]['VHI'].describe())
+# df_drought = df[(df.VHI <= 15) & (df.VHI != -1)]
+# min_v = df[(df.Year.astype(str)==str(i)) & (df.VHI != -1)]['VHI'].min()
 
-# df = pd.read_csv(url, index_col='year', header=1)
-# df.head()
-
-print("VHI is downloaded...")
-# print(type(df))
-# print(df.info())
 
