@@ -109,12 +109,12 @@ def VHI_area_year_extremum(dataframe, area_index, year):
     main_menu()
 
 def VHI_area_extreme_drought_by_percent(dataframe, area_index, percent):
-    df_drought = df[(df.VHI <= 15)] #  & (df.VHI != -1)
+    df_drought = dataframe[(dataframe.VHI <= 15)] #  & (df.VHI != -1)
     print(df_drought)
     main_menu()
 
 def VHI_area_average_drought_by_percent(dataframe, area_index, percent):
-    df_drought = df[(df.VHI <= 35)] #  & (df.VHI != -1)
+    df_drought = dataframe[(dataframe.VHI <= 35)] #  & (df.VHI != -1)
     print(df_drought)
     main_menu()
 
