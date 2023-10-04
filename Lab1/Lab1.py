@@ -118,19 +118,19 @@ def create_VHI_dataset():
 
 def VHI_area_year_extremum(dataframe, year): # , area_index
     df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
-    print(df)
+    print(df.to_string(index=False))
     print("Min:", df.min())
     print("Max:", df.max())
     main_menu()
 
 def VHI_area_extreme_drought_by_percent(dataframe): # , percent, area_index
     df_drought = dataframe[(dataframe.VHI <= 15)] #  & (df.VHI != -1)
-    print(df_drought)
+    print(df_drought.to_string(index=False))
     main_menu()
 
 def VHI_area_average_drought_by_percent(dataframe): # , percent, area_index
     df_drought = dataframe[(dataframe.VHI <= 35)] #  & (df.VHI != -1)
-    print(df_drought)
+    print(df_drought.to_string(index=False))
     main_menu()
 
 def VHI_data(dataframe, float_number, difference):
@@ -179,6 +179,7 @@ def main_menu():
         year = int(input('Enter year: '))
         while year > 2023 or year < 1982:
             year = int(input('Enter year: '))
+        print(dict_for_our_id[area_index])
         VHI_area_year_extremum(dict_for_df[area_index], year) # , area_index
     elif request == "2":
         area_index = int(input('Enter id of province: '))
