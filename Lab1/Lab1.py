@@ -4,44 +4,21 @@ import datetime
 import os
 import pandas as pd
 
-class Config:
-    def __init__(self):
-        try:
-            with open("config.txt", "r+") as cnfg:
-                self.text = cnfg.read()
-        except FileNotFoundError:
-            with open("config.txt", "w+") as cnfg:
-                self.text = cnfg.read()
-    
-    def read(self):
-        with open("config.txt", "r") as cnfg:
-            self.text = cnfg.read()
-        return self.text
-
-    def add(self, file_path):
-        with open("config.txt", "a") as cnfg:
-            cnfg.writelines(file_path + "  ,\n")
-
-    def clear(self):
-        with open("config.txt", "w") as cnfg:
-            cnfg.write("")
-            
-    def find(self, file_path):
-        with open("config.txt", "r") as cnfg:
-            self.text = cnfg.read()
-            start_of_path = self.text.find(file_path)
-            return self.text[start_of_path:start_of_path+37].strip()
-        
-def check_file_existence(file_name_i, config, is_need_name=False):
-    if r'Csv\NOAA_ID'+str(file_name_i) in config.text:
-        if is_need_name:
-            return config.find(r'Csv\NOAA_ID'+str(file_name_i))
-        return True
+def check_file_existence(file_name_i, is_need_name=False):
+    try:
+        list_of_csv = os.listdir("Csv")
+    except FileNotFoundError:
+        os.mkdir('Csv\\')
+        list_of_csv = os.listdir("Csv")
+    for name in list_of_csv:
+        if 'NOAA_ID'+str(file_name_i) in name:
+            if is_need_name:
+                return name
+            return True
     return False
 
-def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text, config):
+def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text):
     path_for_file = r'Csv\NOAA_ID'+str(i)+'_'+date_and_time_time+'.csv'
-    config.add(path_for_file)
     with open(path_for_file,'wb') as out:
         print("Started writing!")
         out.write(text.encode())
@@ -92,7 +69,6 @@ dict_for_our_id = {
                    }
 dict_for_transfer = dict()
 dict_for_df = dict()
-config = Config()
 def create_VHI_dataset():
     for i in range(1,28):
         print(f"\nCreating NOAA with id {i}")
@@ -119,18 +95,11 @@ def create_VHI_dataset():
         date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
         print("Done reading and adapting!")
         
-        if not check_file_existence(i, config):
-            if os.path.exists('Csv\\'):
-                path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text, config)
-            else:
-                print("Directory 'Csv' is missing...")
-                print("Creating directory 'Csv'...")
-                os.mkdir('Csv\\')
-                print("Done creating directory 'Csv'!")
-                path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text, config)
+        if not check_file_existence(i):
+            path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text)
         else:
             print("\nFile already exists\n")
-            path_for_file = check_file_existence(i, config, True)
+            path_for_file = "Csv\\" + check_file_existence(i, True)
             
         print("Started reading csv!")
         df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
@@ -199,8 +168,8 @@ def main_menu():
               "2" to view VHI by area and when it was extreme drought
               "3" to view VHI by area and when it was average drought
               "4" to view VHI in diffences (like VHI > 10.5 or 50 <= VHI <= 100)
-              "5" to view config.txt
-              "6" to clear config.txt
+              "5" to view all csv files
+              "6" to delete all csv files
               "7" to reload csv files""")
         main_menu()
     elif request == "1":
@@ -234,10 +203,12 @@ def main_menu():
         print(dict_for_our_id[area_index])
         VHI_data(dict_for_df[area_index], number_or_list_of_2_numbers, diff)
     elif request == "5":
-        print(config.read())
+        list_to_show = os.listdir("Csv")
+        print(*list_to_show, sep="\n")
         main_menu()
     elif request == "6":
-        config.clear()
+        for file_name in os.listdir("Csv"):
+            os.remove("Csv\\"+file_name)
         main_menu()
     elif request == "7":
         create_VHI_dataset()
@@ -249,5 +220,3 @@ def main_menu():
 
 create_VHI_dataset()
 main_menu()
-
-
