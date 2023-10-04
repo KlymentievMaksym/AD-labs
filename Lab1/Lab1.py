@@ -159,7 +159,7 @@ def VHI_data(dataframe, float_number, difference):
     main_menu()
 
 def main_menu():
-    request = input('What exactly do you want? ("h" for help): ')
+    request = input('\nWhat exactly do you want? ("h" for help): ')
     if request == "h":
         print("""
               "h" to get help
@@ -209,6 +209,7 @@ def main_menu():
     elif request == "6":
         for file_name in os.listdir("Csv"):
             os.remove("Csv\\"+file_name)
+        print("Done!")
         main_menu()
     elif request == "7":
         create_VHI_dataset()
