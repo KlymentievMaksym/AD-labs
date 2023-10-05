@@ -116,8 +116,9 @@ def create_VHI_dataset():
         print("Done!")
         print("VHI is downloaded...")
 
-def receive_dict_of_dfs(dict_for_df):    
-    return dict_for_df
+def receive_list_of_csv():   
+    list_of_csv = os.listdir("Csv\\")
+    return list_of_csv
 
 
 def VHI_area_year_extremum(dataframe, year): # , area_index
