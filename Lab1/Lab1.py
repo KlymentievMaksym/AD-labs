@@ -99,7 +99,13 @@ dict_for_transfer = {
 # dict_for_transfer = dict()
 dict_for_df = dict()
 
-
+def read_VHI_dataframe(path_for_file):
+    print("Started reading csv!")
+    df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
+    # print(df.head())
+    print("Done reading csv!")
+    return df
+    
 def create_VHI_dataset():
     print("VHI is started...")
     for i in range(1,28):
@@ -132,11 +138,8 @@ def create_VHI_dataset():
         else:
             print("\nFile already exists\n")
             path_for_file = "Csv\\" + check_file_existence(i, True)
-            
-        print("Started reading csv!")
-        df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
-        # print(df.head())
-        print("Done reading csv!")
+        
+        df = read_VHI_dataframe(path_for_file)
         
         print("Started deleting NANs and adding our area index...")
         df = df.drop(df.loc[df['VHI'] == -1].index)
@@ -144,23 +147,26 @@ def create_VHI_dataset():
         df["Area"].replace({i:needed_id}, inplace = True)
         dict_for_df[needed_id] = df
         print("Done deleting NANs and adding our area index!")
-        
+    
         print("Done!")
         print("VHI is downloaded...")
 
-def receive_list_of_csv():   
-    # path = os.path.abspath("Csv\\")
-    # os.chroot()
-    path = os.getcwd()
-    print(path)
-    list_of_csv = os.listdir(path)
-    return list_of_csv
+# def receive_list_of_csv():   
+#     # path = os.path.abspath("Csv\\")
+#     # os.chroot()
+#     path = os.getcwd()
+#     print(path)
+#     list_of_csv = os.listdir(path)
+#     return list_of_csv
 
 def get_dict_for_our_id():
     return dict_for_our_id
 
 def get_dict_for_transfer():
     return dict_for_transfer
+
+def get_dict_for_df():
+    return dict_for_df
 
 def VHI_area_year_extremum(dataframe, year): # , area_index
     df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
