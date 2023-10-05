@@ -8,7 +8,10 @@
 # from spyre import server
 # import pandas as pd
 # from ..__init__.py import *
-# from ..Lab1.Lab1 import receive_list_of_csv, get_dict_for_transfer
+import os
+# print(os.getcwd())
+# input()
+# from .Lab1.Lab1 import receive_list_of_csv, get_dict_for_transfer
 
 # class DropdownForVCI_TCI_VHI(server.App):
 #     title = "NOAA data vizualization"
@@ -50,11 +53,19 @@
 #                 "tab": 'Table',
 #                 "on_page_load": True}]
 
-list_of_csv = receive_list_of_csv()
-print(list_of_csv)
-dict_for_df = dict()
+# list_of_csv = receive_list_of_csv()
+# print(list_of_csv)
+if not os.path.exists("Csv\\"):
+    create_VHI_dataset()
+    dict_for_df = get_dict_for_df()
+else:
+    k = 0
+    for name in os.listdir("Csv\\"):
+        path = "Csv\\" + name
+        df = read_VHI_dataframe(path)
+        dict_for_df[k] = df
+        k += 1
 dict_for_transfer = get_dict_for_transfer()
-input()
 
-for file_name in list_of_csv:
-    pass
+# for file_name in list_of_csv:
+    # pass
