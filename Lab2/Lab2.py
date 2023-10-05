@@ -3,10 +3,11 @@
 # import cherrypy
 # import jinja2
 # import dataspyre as 
-import urllib
-import json
+# import urllib
+# import json
 from spyre import server
-import pandas as pd
+# import pandas as pd
+# from ..Lab1.lab1 import create_VHI_dataset
 
 class DropdownForVCI_TCI_VHI(server.App):
     title = "NOAA data vizualization"

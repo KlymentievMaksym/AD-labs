@@ -116,6 +116,10 @@ def create_VHI_dataset():
         print("Done!")
         print("VHI is downloaded...")
 
+def receive_dict_of_dfs(dict_for_df):    
+    return dict_for_df
+
+
 def VHI_area_year_extremum(dataframe, year): # , area_index
     df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
     print(df.to_string(index=False))
