@@ -25,16 +25,14 @@ def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text):
         print("Done writing!")
     return path_for_file
 
-def find_needed_id_for_province_in_dict(dictionary, province, province_index_NOAA, dictionary_for_transfer):
+def find_needed_id_for_province_in_dict(province, province_index_NOAA):
     # print(f"Received name: {province}")
-    for j in range(1, len(dictionary)+1):
+    for j in range(1, len(dict_for_our_id)+1):
         # print(f"{province} == {dictionary[j]}, {province == dictionary[j]}")
-        if province == dictionary[j]:
-            dictionary_for_transfer[j] = province_index_NOAA
+        if province == dict_for_our_id[j]:
+            dict_for_transfer[j] = province_index_NOAA
             return j
     raise NameError("Can't find province")
-
-print("VHI is started...")
 
 # dict_for_NOAA_id = dict()
 headers = ['Year', 'Week', 'SMN', 'SMT', 'VCI', 'TCI', 'VHI']
@@ -66,10 +64,44 @@ dict_for_our_id = {
     25:"Crimea",
     26:"Kiev City",
     27:"Sevastopol"
-                   }
-dict_for_transfer = dict()
+    }
+
+dict_for_transfer = {
+    22: 1,
+    23: 2,
+    24: 3,
+    25: 4,
+    3: 5,
+    4: 6,
+    8: 7,
+    19: 8,
+    20: 9,
+    21: 10,
+    9: 11,
+    26: 12,
+    10: 13, 
+    11: 14,
+    12: 15,
+    13: 16,
+    14: 17,
+    15: 18,
+    16: 19,
+    27: 20, 
+    17: 21,
+    18: 22,
+    6: 23,
+    1: 24,
+    2: 25,
+    7: 26,
+    5: 27
+    }
+
+# dict_for_transfer = dict()
 dict_for_df = dict()
+
+
 def create_VHI_dataset():
+    print("VHI is started...")
     for i in range(1,28):
         print(f"\nCreating NOAA with id {i}")
         url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_TS_admin.php?provinceID="+str(i)+"&country=UKR&yearlyTag=Weekly&type=Mean&TagCropland=land&year1=1982&year2=2023"
@@ -89,7 +121,7 @@ def create_VHI_dataset():
         location_of_name_start = text.find(f"{i}: ")
         location_of_name_end = text.find("  from")
         name_of_province = text[location_of_name_start+3:location_of_name_end]
-        needed_id = find_needed_id_for_province_in_dict(dict_for_our_id, name_of_province.strip(), i, dict_for_transfer)
+        needed_id = find_needed_id_for_province_in_dict(name_of_province.strip(), i)
         # dict_for_NOAA_id[i] = name_of_province.strip()
         now = datetime.datetime.now()
         date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
@@ -117,9 +149,18 @@ def create_VHI_dataset():
         print("VHI is downloaded...")
 
 def receive_list_of_csv():   
-    list_of_csv = os.listdir("Csv\\")
+    # path = os.path.abspath("Csv\\")
+    # os.chroot()
+    path = os.getcwd()
+    print(path)
+    list_of_csv = os.listdir(path)
     return list_of_csv
 
+def get_dict_for_our_id():
+    return dict_for_our_id
+
+def get_dict_for_transfer():
+    return dict_for_transfer
 
 def VHI_area_year_extremum(dataframe, year): # , area_index
     df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
@@ -225,5 +266,6 @@ def main_menu():
     else:
         main_menu()
 
-create_VHI_dataset()
-main_menu()
+if __name__ == "__main__":
+    create_VHI_dataset()
+    main_menu()
