@@ -176,6 +176,8 @@ class TheBestApp(server.App):
             "id": "load_data"
         },]
 
+    tabs = ["Table", "Plot"]
+
     outputs = [{
         "type": "table",
         "id": "Show_data",
@@ -189,7 +191,13 @@ class TheBestApp(server.App):
         "control_id": "load_data",
         "tab": "Download",
         "on_page_load": False
-    }]
+    },
+    {
+        "type": 'plot',
+        "id": 'plot',
+        "control_id": 'update_data',
+        "tab": 'Plot'
+    },]
 
     def getData(self, params):
         ticker = params['ticker']
@@ -216,8 +224,11 @@ class TheBestApp(server.App):
         
         return df.loc[cond_year & cond_week][list_of_things_to_view]
     
-    def GetHTML(self, params):
-        return ""
+    def getPlot(self, params):
+        df = getData()
+        plt_obj = df.plot(y = params['rangeW'])
+        fig = plt_obj.get_figure()
+        return fig
 
 app1 = TheBestApp()
 app1.launch(port=9093)
