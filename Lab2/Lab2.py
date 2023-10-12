@@ -3,7 +3,7 @@
 # import cherrypy
 # import jinja2
 # import dataspyre as 
-# import urllib
+import urllib
 # import json
 # from spyre import server
 # import pandas as pd
@@ -13,82 +13,67 @@ import pandas as pd
 from spyre import server
 headers = ['Year', 'Week', 'SMN', 'SMT', 'VCI', 'TCI', 'VHI']
 
-def read_VHI_dataframe(path_for_file):
-    df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
-    # print(df.head())
-    return df
-
-for name in os.listdir("Csv\\"):
-    df = read_VHI_dataframe("Csv\\" +name)
-    # print(df)
-
-
-
-# class SimpleApp(server.App):
-# 	title = "Simple App"
-# 	inputs = [{
-# 		"type": "text",
-# 		"key": "words",
-# 		"label": "write words here",
-# 		"value": "hello world", 
-# 		"action_id": "simple_html_output"
-# 	}]
-
-# 	outputs = [{
-# 		"type": "html",
-# 		"id": "simple_html_output"
-# 	}]
-
-# 	def getHTML(self, params):
-# 		words = params["words"]
-# 		return "Here's what you wrote in the textbox: <b>%s</b>" % words
-
-# import os
-class DropdownForVCI_TCI_VHI(server.App):
+class TheBestApp(server.App):
     title = "NOAA data vizualization"
-    
-    inputs = [{"type": 'dropdown',
-                "label": 'NOAA data dropdown',
-                "options": [{"label":"VCI", "value":"VCI"},
-                          {"label":"TCI", "value":"TCI"},
-                          {"label":"VHI", "value":"VGI"}],
-                "key":'ticker',
-                "action_id": "update_data"},
-              {"type": 'text',
-                "label": 'data-ranges',
-                "options": [{"label":"VCI", "value":"VCI"},
-                          {"label":"TCI", "value":"TCI"},
-                          {"label":"VHI", "value":"VGI"}],
-                "key":'range',
-                "value":'9-10',
-                "action_id": "simple_html_output"}]
-    outputs = [{"type": 'plot',
-      "id": 'plot',
-      "control_id": 'update_data',
-      "tab": 'Plot'},
-      {"type": 'table',
-      "id": 'table_id',
-      "control_id": 'update_data',
-      "tab": 'Table',
-      "on_page_load": True}]
-#     def getHTML(self, params):
-#         ranges = params["range"]
-#         return ranges
-# class TextEntryForMonthInterval(server.App):
-#     title = "Text entry for month interval"
-    
-#     inputs = []
-    
-    
+    inputs = [
+        {"type": 'dropdown',
+        "label": 'NOAA data dropdown',
+        "options": [{"label":"VCI", "value":"VCI"},
+                  {"label":"TCI", "value":"TCI"},
+                  {"label":"VHI", "value":"VHI"}],
+        "key":'ticker',
+        "action_id": "Show_data"},
+        {"type": 'text',
+        "label": 'Data Time (Year)',
+        "options": [{"label":"VCI", "value":"VCI"},
+                  {"label":"TCI", "value":"TCI"},
+                  {"label":"VHI", "value":"VHI"}],
+        "key":'range',
+        "value":'1982-2023',
+        "action_id": "Show_data"},
+        {"type": 'text',
+        "label": 'Data Time (Week)',
+        "options": [{"label":"VCI", "value":"VCI"},
+                  {"label":"TCI", "value":"TCI"},
+                  {"label":"VHI", "value":"VHI"}],
+        "key":'rangeW',
+        "value":'1-52',
+        "action_id": "Show_data"}]
 
-# class TableAndPlot(server.App):
-#     title = "Table and plot"
-    
-#     inputs = []
+    # controls = [{
+    #         "type": "button",
+    #         "label": "Load Table",
+    #         "id": "Show_data"
+    #     }]
 
-# app = DropdownForVCI_TCI_VHI()
-# app.launch(port=9097)
-# app1 = TextEntryForMonthInterval()
-# app1.launch(port=9095)
-app1 = DropdownForVCI_TCI_VHI()
+    outputs = [{
+        "type": "table",
+        "id": "Show_data",
+        "control_id": "update_data",
+        "tab": "Table",
+        "on_page_load": True
+    }]
+
+    def getData(self, params):
+        ticker = params['ticker']
+        drange = params['range']
+        dwrange = params['rangeW']
+        
+        df = pd.read_csv("Csv\\NOAA_ID1_05-10-2023-20-41-41.csv", index_col=None, header=1, names=headers)
+        df['Area'] = 1
+        df = df.drop(df.loc[df['VHI'] == -1].index)
+        # print(r"||||||||||||||||||||||||||||||", int(drange[:4]), int(drange[5:]), r"||||||||||||||||||||||||||||||") #[str(ticker).find("ticker=")+7:str(ticker).find("ticker=")+10]
+        
+        drange = drange.split("-")
+        dwrange = dwrange.split("-")
+        
+        cond_year = (df.Year>=int(drange[0])) & (df.Year<=int(drange[1]))
+        cond_week = (df.Week>=int(dwrange[0])) & (df.Week<=int(dwrange[1]))
+        
+        list_of_things_to_view = ["Year", "Week", str(ticker), "Area"]
+        
+        return df.loc[cond_year & cond_week][list_of_things_to_view]
+
+
+app1 = TheBestApp()
 app1.launch(port=9093)
