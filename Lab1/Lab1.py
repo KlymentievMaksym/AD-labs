@@ -25,14 +25,10 @@ def create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text):
         print("Done writing!")
     return path_for_file
 
-def find_needed_id_for_province_in_dict(province, province_index_NOAA):
-    # print(f"Received name: {province}")
-    for j in range(1, len(dict_for_our_id)+1):
-        # print(f"{province} == {dictionary[j]}, {province == dictionary[j]}")
-        if province == dict_for_our_id[j]:
-            dict_for_transfer[j] = province_index_NOAA
-            return j
-    raise NameError("Can't find province")
+def find_needed_id_from_NOAA(our_id):
+    for id in dict_for_transfer:
+        if id == our_id:
+            return dict_for_transfer[id]
 
 # dict_for_NOAA_id = dict()
 headers = ['Year', 'Week', 'SMN', 'SMT', 'VCI', 'TCI', 'VHI']
@@ -98,22 +94,13 @@ dict_for_transfer = {
 
 # dict_for_transfer = dict()
 dict_for_df = dict()
-
-def read_VHI_dataframe(path_for_file):
-    print("Started reading csv!")
-    df = pd.read_csv(path_for_file, index_col=None, header=1, names=headers)
-    # print(df.head())
-    print("Done reading csv!")
-    return df
     
 def create_VHI_dataset():
-    print("VHI is started...")
     for i in range(1,28):
         print(f"\nCreating NOAA with id {i}")
         url = "https://www.star.nesdis.noaa.gov/smcd/emb/vci/VH/get_TS_admin.php?provinceID="+str(i)+"&country=UKR&yearlyTag=Weekly&type=Mean&TagCropland=land&year1=1982&year2=2023"
         vhi_url = urllib.request.urlopen(url)
         
-        print("Started reading and adapting!")
         text = vhi_url.read()
         text = text.decode()
         # print(type(text))
@@ -124,32 +111,31 @@ def create_VHI_dataset():
         text = text.replace("</pre></tt>","")
         text = text.replace("<tt><pre>","")
         text = text.replace("<br>","")
-        location_of_name_start = text.find(f"{i}: ")
-        location_of_name_end = text.find("  from")
-        name_of_province = text[location_of_name_start+3:location_of_name_end]
-        needed_id = find_needed_id_for_province_in_dict(name_of_province.strip(), i)
-        # dict_for_NOAA_id[i] = name_of_province.strip()
+
         now = datetime.datetime.now()
         date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
-        print("Done reading and adapting!")
         
         if not check_file_existence(i):
             path_for_file = create_file_with_dataset_and_receive_its_path(i, date_and_time_time, text)
         else:
             print("\nFile already exists\n")
-            path_for_file = "Csv\\" + check_file_existence(i, True)
-        
-        df = read_VHI_dataframe(path_for_file)
-        
-        print("Started deleting NANs and adding our area index...")
+    read_VHI_dataset()
+
+
+def read_VHI_dataset():
+    for npath in os.listdir("Csv\\"):
+        # print("Started reading csv!")   
+        df = pd.read_csv("Csv\\" + npath, index_col=None, header=1, names=headers)
+        # print("Done reading csv!")
+        j = int(npath[(npath.find("ID")+2):(npath.find("ID")+4)].replace("_", ""))
+        # print("Started deleting NANs and adding our area index...")
         df = df.drop(df.loc[df['VHI'] == -1].index)
-        df['Area'] = i
-        df["Area"].replace({i:needed_id}, inplace = True)
+        needed_id = find_needed_id_from_NOAA(j)
+        df['Area'] = needed_id 
         dict_for_df[needed_id] = df
-        print("Done deleting NANs and adding our area index!")
-    
-        print("Done!")
-        print("VHI is downloaded...")
+        # print("Done deleting NANs and adding our area index!")
+    print("Done!")
+    # print("VHI is downloaded...")
 
 # def receive_list_of_csv():   
 #     # path = os.path.abspath("Csv\\")
@@ -169,20 +155,20 @@ def get_dict_for_df():
     return dict_for_df
 
 def VHI_area_year_extremum(dataframe, year): # , area_index
-    df = dataframe[(dataframe["Year"] == year)]['VHI'] # (dataframe["Area"] == area_index) & 
+    df = dataframe[(dataframe["Year"] == year)][['Year', 'Week', 'VHI', 'Area']] # (dataframe["Area"] == area_index) & 
     print(df.to_string(index=False))
-    print("Min:", df.min())
-    print("Max:", df.max())
+    print("Min:", df['VHI'].min())
+    print("Max:", df['VHI'].max())
     main_menu()
 
 def VHI_area_extreme_drought_by_percent(dataframe): # , percent, area_index
     df_drought = dataframe[(dataframe.VHI <= 15)] #  & (df.VHI != -1)
-    print(df_drought.to_string(index=False))
+    print(df_drought[['Year', 'Week', 'VHI', 'Area']].to_string(index=False))
     main_menu()
 
 def VHI_area_average_drought_by_percent(dataframe): # , percent, area_index
     df_drought = dataframe[(dataframe.VHI <= 35)] #  & (df.VHI != -1)
-    print(df_drought.to_string(index=False))
+    print(df_drought[['Year', 'Week', 'VHI', 'Area']].to_string(index=False))
     main_menu()
 
 def VHI_data(dataframe, float_number, difference):
@@ -203,11 +189,11 @@ def VHI_data(dataframe, float_number, difference):
     elif difference == "" and type(float_number) == list:
         int1 = float(float_number[0])
         int2 = float(float_number[1])
-        df = dataframe[(dataframe.VHI >= int1) & (dataframe.VHI <= int2)]['VHI']
+        df = dataframe[(dataframe.VHI >= int1) & (dataframe.VHI <= int2)]
     else:
         print("Operation was unsuccesful!")
         df = dataframe
-    print(df)
+    print(df[['Year', 'Week', 'VHI', 'Area']].to_string(index=False))
     main_menu()
 
 def main_menu():
@@ -273,5 +259,12 @@ def main_menu():
         main_menu()
 
 if __name__ == "__main__":
-    create_VHI_dataset()
+    check = input("Wanna download files? (0-False, 1-True): ")
+    if check == "1":
+        create_VHI_dataset()
+    else:
+        try:
+            read_VHI_dataset()
+        except FileNotFoundError:
+            create_VHI_dataset()
     main_menu()
