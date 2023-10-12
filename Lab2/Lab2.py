@@ -1,9 +1,9 @@
 # import matplotlib as mtplt
-# import numpy as np
 # import cherrypy
 # import jinja2
 # import json
 
+import numpy as np
 import urllib
 import datetime
 import os
@@ -174,6 +174,11 @@ class TheBestApp(server.App):
             "type": "button",
             "label": "Download Current Data Table",
             "id": "load_data"
+        },
+        {
+            "type": "button",
+            "label": "Update Plot",
+            "id": "update_data"
         },]
 
     tabs = ["Table", "Plot"]
@@ -196,7 +201,8 @@ class TheBestApp(server.App):
         "type": 'plot',
         "id": 'plot',
         "control_id": 'update_data',
-        "tab": 'Plot'
+        "tab": 'Plot',
+        "on_page_load": True
     },]
 
     def getData(self, params):
@@ -225,8 +231,10 @@ class TheBestApp(server.App):
         return df.loc[cond_year & cond_week][list_of_things_to_view]
     
     def getPlot(self, params):
-        df = getData()
-        plt_obj = df.plot(y = params['rangeW'])
+        ticker = params['ticker']
+        df = self.getData(params)
+        # ind = np.arange(1982,2023)
+        plt_obj = df.plot(x="Year", y=str(ticker))
         fig = plt_obj.get_figure()
         return fig
 
