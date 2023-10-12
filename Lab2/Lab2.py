@@ -2,12 +2,10 @@
 # import numpy as np
 # import cherrypy
 # import jinja2
-# import dataspyre as 
-import urllib
 # import json
-# from spyre import server
-# import pandas as pd
 
+import urllib
+import datetime
 import os
 import pandas as pd
 from spyre import server
@@ -104,6 +102,13 @@ def create_VHI_dataset():
             print("\nFile already exists\n")
 
 
+try:
+    for npath in os.listdir("Csv\\"):
+        pass
+except FileNotFoundError:
+    create_VHI_dataset()
+
+
 class TheBestApp(server.App):
     title = "NOAA data vizualization"
     inputs = [
@@ -165,11 +170,11 @@ class TheBestApp(server.App):
         "value":'1-52',
         "action_id": "Show_data"}]
 
-    # controls = [{
-    #         "type": "button",
-    #         "label": "Load Table",
-    #         "id": "Show_data"
-    #     }]
+    controls = [{
+            "type": "button",
+            "label": "Download Current Data Table",
+            "id": "load_data"
+        },]
 
     outputs = [{
         "type": "table",
@@ -177,6 +182,13 @@ class TheBestApp(server.App):
         "control_id": "update_data",
         "tab": "Table",
         "on_page_load": True
+    },
+    {
+        "type": "download",
+        "id": "download_data",
+        "control_id": "load_data",
+        "tab": "Download",
+        "on_page_load": False
     }]
 
     def getData(self, params):
@@ -203,7 +215,9 @@ class TheBestApp(server.App):
         list_of_things_to_view = ["Year", "Week", str(ticker), "Area"]
         
         return df.loc[cond_year & cond_week][list_of_things_to_view]
-
+    
+    def GetHTML(self, params):
+        return ""
 
 app1 = TheBestApp()
 app1.launch(port=9093)
