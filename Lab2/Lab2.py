@@ -234,7 +234,7 @@ class TheBestApp(server.App):
         ticker = params['ticker']
         df = self.getData(params)
         # ind = np.arange(1982,2023)
-        plt_obj = df.plot(x="Year", y=str(ticker))
+        plt_obj = df.plot(x="Week", y=str(ticker), figsize=(12, 8), grid=True, style='.-', markerfacecolor='black')
         fig = plt_obj.get_figure()
         return fig
 
