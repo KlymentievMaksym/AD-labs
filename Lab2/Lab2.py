@@ -41,6 +41,41 @@ dict_for_transfer = {
     5: 27
     }
 
+dict_for_our_id = {
+    1:"Vinnytsya",
+    2:"Volyn",
+    3:"Dnipropetrovsk",
+    4:"Donetsk",
+    5:"Zhytomyr",
+    6:"Transcarpathia",
+    7:"Zaporizhzhya",
+    8:"Ivano-Frankivsk",
+    9:"Kiev",
+    10:"Kirovohrad",
+    11:"Luhansk",
+    12:"Lviv",
+    13:"Mykolayiv",
+    14:"Odessa",
+    15:"Poltava",
+    16:"Rivne",
+    17:"Sumy",
+    18:"Ternopil",
+    19:"Kharkiv",
+    20:"Kherson",
+    21:"Khmelnytskyy",
+    22:"Cherkasy",
+    23:"Chernihiv",
+    24:"Chernivtsi",
+    25:"Crimea",
+    26:"Kiev City",
+    27:"Sevastopol"
+    }
+
+def find_in_dict_by_id(find_id):
+    for id in dict_for_our_id:
+        if id == find_id:
+            return dict_for_our_id[id]
+
 
 def find_needed_id_for_NOAA(our_id):
     for id in dict_for_transfer:
@@ -241,6 +276,8 @@ class TheBestApp(server.App):
     def getPlot(self, params):
         ticker = params['ticker']
         pltsize = params['pltsize']
+        province_our_id = params['province']
+        
         df = self.getData(params)
 
         df_copy = df.copy()
@@ -252,8 +289,10 @@ class TheBestApp(server.App):
         df_copy[["Year", "Week"]] = df_copy_val
 
         width, height = int(pltsize.split(', ')[0]), int(pltsize.split(', ')[1])
-
-        plt_obj = df_copy.plot(x="Week", y=str(ticker), figsize=(width, height), grid=True, style='.-', markerfacecolor='black')
+        
+        name_for_plot = find_in_dict_by_id(int(province_our_id))
+        
+        plt_obj = df_copy.plot(x="Week", y=str(ticker), figsize=(width, height), grid=True, style='.-', markerfacecolor='black', xlabel="Week", ylabel="Value", title=str(name_for_plot))
         fig = plt_obj.get_figure()
         return fig
 
