@@ -2,8 +2,8 @@
 # import cherrypy
 # import jinja2
 # import json
+# import numpy as np
 
-import numpy as np
 import urllib
 import datetime
 import os
@@ -49,7 +49,7 @@ def find_needed_id_for_NOAA(our_id):
 
 
 def find_needed_path(bpath):
-    print(bpath)
+    # print(bpath)
     for fpath in os.listdir("Csv\\"):
         if bpath in fpath:
             return fpath
@@ -97,7 +97,7 @@ def create_VHI_dataset():
         date_and_time_time = now.strftime("%d-%m-%Y-%H-%M-%S")
         
         if not check_file_existence(i):
-            path_for_file = create_file(i, date_and_time_time, text)
+            create_file(i, date_and_time_time, text)
         else:
             print("\nFile already exists\n")
 
@@ -118,7 +118,7 @@ class TheBestApp(server.App):
                   {"label":"TCI", "value":"TCI"},
                   {"label":"VHI", "value":"VHI"}],
         "key":'ticker',
-        "action_id": "Show_data"},
+        "action_id": "update_data"},
         
         {"type": 'dropdown',
         "label": 'Province',
@@ -150,7 +150,7 @@ class TheBestApp(server.App):
                   {"label":"Kiev City", "value":"26"},
                   {"label":"Sevastopol", "value":"27"}],
         "key":'province',
-        "action_id": "Show_data"},
+        "action_id": "update_data"},
 
         {"type": 'text',
         "label": 'Data Time (Year)',
@@ -159,7 +159,7 @@ class TheBestApp(server.App):
                   {"label":"VHI", "value":"VHI"}],
         "key":'range',
         "value":'1982-2023',
-        "action_id": "Show_data"},
+        "action_id": "update_data"},
         
         {"type": 'text',
         "label": 'Data Time (Week)',
@@ -168,7 +168,16 @@ class TheBestApp(server.App):
                   {"label":"VHI", "value":"VHI"}],
         "key":'rangeW',
         "value":'1-52',
-        "action_id": "Show_data"}]
+        "action_id": "update_data"},
+        
+        {"type": 'text',
+        "label": 'Plot Size (width, height)',
+        "options": [{"label":"VCI", "value":"VCI"},
+                  {"label":"TCI", "value":"TCI"},
+                  {"label":"VHI", "value":"VHI"}],
+        "key":'pltsize',
+        "value":'12, 8',
+        "action_id": "update_data"}]
 
     controls = [{
             "type": "button",
@@ -176,8 +185,8 @@ class TheBestApp(server.App):
             "id": "load_data"
         },
         {
-            "type": "button",
-            "label": "Update Plot",
+            "type": "hidden",
+            "label": "Update all data",
             "id": "update_data"
         },]
 
@@ -218,8 +227,7 @@ class TheBestApp(server.App):
         df = pd.read_csv("Csv\\" + npath, index_col=None, header=1, names=headers)
         df['Area'] = province_our_id
         df = df.drop(df.loc[df['VHI'] == -1].index)
-        # print(r"||||||||||||||||||||||||||||||", int(drange[:4]), int(drange[5:]), r"||||||||||||||||||||||||||||||") #[str(ticker).find("ticker=")+7:str(ticker).find("ticker=")+10]
-        
+                
         drange = drange.split("-")
         dwrange = dwrange.split("-")
         
@@ -232,9 +240,20 @@ class TheBestApp(server.App):
     
     def getPlot(self, params):
         ticker = params['ticker']
+        pltsize = params['pltsize']
         df = self.getData(params)
-        # ind = np.arange(1982,2023)
-        plt_obj = df.plot(x="Week", y=str(ticker), figsize=(12, 8), grid=True, style='.-', markerfacecolor='black')
+
+        df_copy = df.copy()
+        df_copy_val = df_copy[["Year", "Week"]].values
+
+        for i in range(len(df_copy_val)):
+            df_copy_val[i][1] = i+1
+
+        df_copy[["Year", "Week"]] = df_copy_val
+
+        width, height = int(pltsize.split(', ')[0]), int(pltsize.split(', ')[1])
+
+        plt_obj = df_copy.plot(x="Week", y=str(ticker), figsize=(width, height), grid=True, style='.-', markerfacecolor='black')
         fig = plt_obj.get_figure()
         return fig
 
