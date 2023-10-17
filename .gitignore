@@ -7,3 +7,5 @@ Lab2/Csv
 Lab2/__pycache__/
 Lab2/Lab2Env/
 Lab2/test.py
+
+*/.ipynb_checkpoints
