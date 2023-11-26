@@ -43,10 +43,21 @@ line2, = ax.plot(t, f1(t, init_amplitude, init_frequency, init_phase), visible=F
 ax.set_xlabel('Time [s]')
 
 # adjust the main plot to make room for the sliders
-fig.subplots_adjust(left=0.25, bottom=0.25)
+fig.subplots_adjust(left=0.25, bottom=0.35)
+
+# Make a horizontal oriented slider to control the amplitude
+axamp = fig.add_axes([0.25, 0.2, 0.65, 0.03])
+amp_slider = Slider(
+    ax=axamp,
+    label="Amplitude",
+    valmin=0,
+    valmax=10,
+    valinit=init_amplitude,
+    #orientation="vertical"
+)
 
 # Make a horizontal slider to control the frequency.
-axfreq = fig.add_axes([0.25, 0.1, 0.65, 0.03])
+axfreq = fig.add_axes([0.25, 0.15, 0.65, 0.03])
 freq_slider = Slider(
     ax=axfreq,
     label='Frequency [Hz]',
@@ -56,7 +67,7 @@ freq_slider = Slider(
 )
 
 # Make a horizontal slider to control the phase.
-axphas = fig.add_axes([0.25, 0.05, 0.65, 0.03])
+axphas = fig.add_axes([0.25, 0.1, 0.65, 0.03])
 phas_slider = Slider(
     ax=axphas,
     label='Phase',
@@ -65,18 +76,29 @@ phas_slider = Slider(
     valinit=init_phase,
 )
 
-# Make a vertically oriented slider to control the amplitude
-axamp = fig.add_axes([0.1, 0.25, 0.0225, 0.63])
-amp_slider = Slider(
-    ax=axamp,
-    label="Amplitude",
-    valmin=0,
-    valmax=10,
-    valinit=init_amplitude,
+# Make a vertically oriented slider to control the Noise mean
+nmamp = fig.add_axes([0.16, 0.35, 0.0225, 0.53])
+noismean_slider = Slider(
+    ax=nmamp,
+    label="Mean",
+    valmin=-5,
+    valmax=5,
+    valinit=init_noise_mean,
     orientation="vertical"
 )
 
-rax = fig.add_axes([0.40, 0.89, 0.35, 0.12])
+# Make a vertically oriented slider to control the Noise covariance
+ncamp = fig.add_axes([0.09, 0.35, 0.0225, 0.53])
+noiscovar_slider = Slider(
+    ax=ncamp,
+    label="Covar",
+    valmin=-5,
+    valmax=5,
+    valinit=init_noise_mean,
+    orientation="vertical"
+)
+
+rax = fig.add_axes([0.40, 0.88, 0.35, 0.12])
 check = CheckButtons(rax, ('Harmonic', 'Harmonic via noise'), (True, False))
 
 # The function to be called anytime a slider's value changes
@@ -100,7 +122,7 @@ amp_slider.on_changed(update)
 phas_slider.on_changed(update)
 
 # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
-resetax = fig.add_axes([0.8, 0.005, 0.1, 0.04])
+resetax = fig.add_axes([0.8, 0.025, 0.1, 0.04])
 button = Button(resetax, 'Reset', hovercolor='0.975')
 
 
