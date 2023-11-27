@@ -1,20 +1,28 @@
 # Постановка задачі:
 # Створіть програму, яка дозволить користувачам малювати графік функції гармоніки (функція виду y(t) = A ∗ sin(ω ∗ t + φ)) з накладеним шумом та надавати можливість змінювати параметри гармоніки та шуму за допомогою інтерактивного інтерфейсу, що включає в себе слайдери, кнопки та чекбокси. Зашумлену гармоніку відфільтруйте за допомогою фільтру на вибір, порівняйте результат.
 
-# # 1. Створіть програму, яка використовує бібліотеки Matplotlib для створення графічного інтерфейсу.
-# # 2. Реалізуйте функцію harmonic_with_noise, яка приймає наступні параметри:
+# Завдання 1
+# 1. Створіть програму, яка використовує бібліотеки Matplotlib для створення графічного інтерфейсу.
+# 2. Реалізуйте функцію harmonic_with_noise, яка приймає наступні параметри:
 # # amplitude - амплітуда гармоніки.
 # # frequency - частота гармоніки.
 # # phase – фазовий зсув гаромніки
 # # noise_mean - амплітуда шуму.
 # # noise_covariance – дисперсія шуму
 # # show_noise - флаг, який вказує, чи слід показувати шум на графіку.
-# # 3. У програмі має бути створено головне вікно з такими елементами інтерфейсу:
+# 3. У програмі має бути створено головне вікно з такими елементами інтерфейсу:
 # # Поле для графіку функції (plot)
 # # Слайдери (sliders), які відповідають за амплітуду, частоту гармоніки, а також слайдери для параметрів шуму
 # # Чекбокс для перемикання відображення шуму на гармоніці
 # # Кнопка «Reset», яка відновлює початкові параметри
-# # 4. Програма повинна мати початкові значення кожного параметру, а також передавати параметри для відображення оновленого графіку.
+# 4. Програма повинна мати початкові значення кожного параметру, а також передавати параметри для відображення оновленого графіку.
+# 5. Через чекбокс користувач може вмикати або вимикати відображення шуму на графіку. Якщо прапорець прибрано – відображати «чисту гармоніку», якщо ні – зашумлену.
+# 6. Після оновлення параметрів програма повинна одразу оновлювати графік функції гармоніки з накладеним шумом згідно з виставленими параметрами.
+# Зауваження: якщо ви змінили параметри гармоніки, але не змінювали параметри шуму, то шум має залишитись таким як і був, а не генеруватись наново. Якщо ви змінили параметри шуму, змінюватись має лише шум – параметри гармоніки мають залишатись незмінними.
+# 7. Після натискання кнопки «Reset», мають відновитись початкові параметри
+# 8. Залиште коментарі та інструкції для користувача, які пояснюють, як користуватися програмою.
+# 9. Завантажте файл зі скриптом до вашого репозиторію на GitHub
+# 10. Надайте короткий звіт про ваш досвід та вивчені навички.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,7 +33,7 @@ def f(t, amplitude, frequency, phase): # harmonic
     return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
 def f1(t, amplitude, frequency, phase): # harmonic_with_noise
-    return amplitude * np.sin(4 * np.pi * frequency * t + phase)
+    return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
 t = np.linspace(0, 1, 1000)
 
@@ -40,6 +48,9 @@ init_noise_covariance = 0
 fig, ax = plt.subplots()
 line, = ax.plot(t, f(t, init_amplitude, init_frequency, init_phase), lw=2)
 line2, = ax.plot(t, f1(t, init_amplitude, init_frequency, init_phase), visible=False, lw=2)
+noise = np.random.uniform(init_noise_mean, init_noise_covariance, line2.get_ydata().size)
+# print(noise)
+line2.set_ydata(line2.get_ydata() + noise)
 ax.set_xlabel('Time [s]')
 
 # adjust the main plot to make room for the sliders
@@ -54,6 +65,7 @@ amp_slider = Slider(
     valmax=10,
     valinit=init_amplitude,
     #orientation="vertical"
+    color='red'
 )
 
 # Make a horizontal slider to control the frequency.
@@ -64,6 +76,7 @@ freq_slider = Slider(
     valmin=0.1,
     valmax=30,
     valinit=init_frequency,
+    color='grey'
 )
 
 # Make a horizontal slider to control the phase.
@@ -74,6 +87,7 @@ phas_slider = Slider(
     valmin=0,
     valmax=2*np.pi,
     valinit=init_phase,
+    color='purple'
 )
 
 # Make a vertically oriented slider to control the Noise mean
@@ -104,7 +118,11 @@ check = CheckButtons(rax, ('Harmonic', 'Harmonic via noise'), (True, False))
 # The function to be called anytime a slider's value changes
 def update(val):
     line.set_ydata(f(t, amp_slider.val, freq_slider.val, phas_slider.val))
+    
     line2.set_ydata(f1(t, amp_slider.val, freq_slider.val, phas_slider.val))
+    noise = np.random.uniform(noismean_slider.val, noiscovar_slider.val, line2.get_ydata().size)
+    line2.set_ydata(line2.get_ydata() + noise)
+    
     fig.canvas.draw_idle()
 
 
@@ -120,6 +138,8 @@ check.on_clicked(func)
 freq_slider.on_changed(update)
 amp_slider.on_changed(update)
 phas_slider.on_changed(update)
+noismean_slider.on_changed(update)
+noiscovar_slider.on_changed(update)
 
 # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
 resetax = fig.add_axes([0.8, 0.025, 0.1, 0.04])
@@ -130,20 +150,15 @@ def reset(event):
     freq_slider.reset()
     amp_slider.reset()
     phas_slider.reset()
+    noismean_slider.reset()
+    noiscovar_slider.reset()
 button.on_clicked(reset)
 
 plt.show()
 
+# print(line2.get_ydata().size)
 
-# Завдання 1
 
-# 5. Через чекбокс користувач може вмикати або вимикати відображення шуму на графіку. Якщо прапорець прибрано – відображати «чисту гармоніку», якщо ні – зашумлену.
-# 6. Після оновлення параметрів програма повинна одразу оновлювати графік функції гармоніки з накладеним шумом згідно з виставленими параметрами.
-# Зауваження: якщо ви змінили параметри гармоніки, але не змінювали параметри шуму, то шум має залишитись таким як і був, а не генеруватись наново. Якщо ви змінили параметри шуму, змінюватись має лише шум – параметри гармоніки мають залишатись незмінними.
-# 7. Після натискання кнопки «Reset», мають відновитись початкові параметри
-# 8. Залиште коментарі та інструкції для користувача, які пояснюють, як користуватися програмою.
-# 9. Завантажте файл зі скриптом до вашого репозиторію на GitHub
-# 10. Надайте короткий звіт про ваш досвід та вивчені навички.
 # Завдання 2
 # 1. Отриману гармоніку з накладеним на неї шумом відфільтруйте за допомогою фільтру на ваш вибір (наприклад scipy.signal.iirfilter, повний список за посиланням: https://docs.scipy.org/doc/scipy/reference/signal.html). Відфільтрована гармоніка має бути максимально близька до «чистої»
 # 2. Відобразіть відфільтровану «чисту» гармоніку поряд з початковою
