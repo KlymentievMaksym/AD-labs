@@ -24,16 +24,23 @@
 # 9. Завантажте файл зі скриптом до вашого репозиторію на GitHub
 # 10. Надайте короткий звіт про ваш досвід та вивчені навички.
 
+# Завдання 2
+# 1. Отриману гармоніку з накладеним на неї шумом відфільтруйте за допомогою фільтру на ваш вибір (наприклад scipy.signal.iirfilter, повний список за посиланням: https://docs.scipy.org/doc/scipy/reference/signal.html). Відфільтрована гармоніка має бути максимально близька до «чистої»
+# 2. Відобразіть відфільтровану «чисту» гармоніку поряд з початковою
+# 3. Додайте відповідні інтерактивні елементи (чекбокс показу, параметри фільтру тощо) та оновіть існуючі: відфільтрована гармоніка має оновлюватись разом з початковою.
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons, Button, Slider
+from scipy import signal
 
 # The parametrized function to be plotted
 def f(t, amplitude, frequency, phase): # harmonic
     return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
-def f1(t, amplitude, frequency, phase): # harmonic_with_noise
-    return amplitude * np.sin(2 * np.pi * frequency * t + phase)
+def f1(t, amplitude, frequency, phase, noise_mean, noise_covariance): # harmonic_with_noise
+    noise = np.random.uniform(noise_mean, noise_covariance, len(t))
+    return amplitude * np.sin(2 * np.pi * frequency * t + phase) + noise
 
 t = np.linspace(0, 1, 1000)
 
@@ -43,18 +50,27 @@ init_frequency = 3
 init_phase = 0
 init_noise_mean = 0
 init_noise_covariance = 0
+init_filter = 0.03
 
 # Create the figure and the line that we will manipulate
-fig, ax = plt.subplots()
-line, = ax.plot(t, f(t, init_amplitude, init_frequency, init_phase), lw=2)
-line2, = ax.plot(t, f1(t, init_amplitude, init_frequency, init_phase), visible=False, lw=2)
-noise = np.random.uniform(init_noise_mean, init_noise_covariance, line2.get_ydata().size)
-# print(noise)
-line2.set_ydata(line2.get_ydata() + noise)
-ax.set_xlabel('Time [s]')
+fig, (ax0, ax1) = plt.subplots(1, 2)
+
+line, = ax0.plot(t, f(t, init_amplitude, init_frequency, init_phase), lw=2)
+
+line2, = ax0.plot(t, f1(t, init_amplitude, init_frequency, init_phase, init_noise_mean, init_noise_covariance), visible=False, lw=2)
+
+# b, a = signal.iirfilter(3, 0.5, btype='low')
+b, a = signal.butter(4, init_filter, btype='low')#, analog=False)
+
+filtered_harmonic = signal.lfilter(b, a, f1(t, init_amplitude, init_frequency, init_phase, init_noise_mean, init_noise_covariance))
+line3, = ax1.plot(t, filtered_harmonic, lw=2)
+
+ax0.set_xlabel('Time [s]')
+ax0.set_title('Harmonic')
+ax1.set_title('Filtered Harmonic')
 
 # adjust the main plot to make room for the sliders
-fig.subplots_adjust(left=0.25, bottom=0.35)
+fig.subplots_adjust(left=0.25, bottom=0.35, top=0.75)
 
 # Make a horizontal oriented slider to control the amplitude
 axamp = fig.add_axes([0.25, 0.2, 0.65, 0.03])
@@ -112,16 +128,30 @@ noiscovar_slider = Slider(
     orientation="vertical"
 )
 
-rax = fig.add_axes([0.40, 0.88, 0.35, 0.12])
+fltamp = fig.add_axes([0.95, 0.35, 0.0225, 0.53])
+flt_slider = Slider(
+    ax=fltamp,
+    label="Filter",
+    valmin=0.001,
+    valmax=0.1,
+    valinit=init_filter,
+    orientation="vertical"
+)
+
+rax = fig.add_axes([0.40, 0.82, 0.35, 0.12])
 check = CheckButtons(rax, ('Harmonic', 'Harmonic via noise'), (True, False))
 
 # The function to be called anytime a slider's value changes
 def update(val):
+    
+    b, a = signal.butter(4, flt_slider.val, btype='low')# , analog=False)
+    
     line.set_ydata(f(t, amp_slider.val, freq_slider.val, phas_slider.val))
     
-    line2.set_ydata(f1(t, amp_slider.val, freq_slider.val, phas_slider.val))
-    noise = np.random.uniform(noismean_slider.val, noiscovar_slider.val, line2.get_ydata().size)
-    line2.set_ydata(line2.get_ydata() + noise)
+    line2.set_ydata(f1(t, amp_slider.val, freq_slider.val, phas_slider.val, noismean_slider.val, noiscovar_slider.val))
+    
+    filtered_harmonic = signal.lfilter(b, a, f1(t, amp_slider.val, freq_slider.val, phas_slider.val, noismean_slider.val, noiscovar_slider.val))
+    line3.set_ydata(filtered_harmonic)
     
     fig.canvas.draw_idle()
 
@@ -140,6 +170,7 @@ amp_slider.on_changed(update)
 phas_slider.on_changed(update)
 noismean_slider.on_changed(update)
 noiscovar_slider.on_changed(update)
+flt_slider.on_changed(update)
 
 # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
 resetax = fig.add_axes([0.8, 0.025, 0.1, 0.04])
@@ -152,6 +183,7 @@ def reset(event):
     phas_slider.reset()
     noismean_slider.reset()
     noiscovar_slider.reset()
+    flt_slider.reset()
 button.on_clicked(reset)
 
 plt.show()
@@ -159,13 +191,10 @@ plt.show()
 # print(line2.get_ydata().size)
 
 
-# Завдання 2
-# 1. Отриману гармоніку з накладеним на неї шумом відфільтруйте за допомогою фільтру на ваш вибір (наприклад scipy.signal.iirfilter, повний список за посиланням: https://docs.scipy.org/doc/scipy/reference/signal.html). Відфільтрована гармоніка має бути максимально близька до «чистої»
-# 2. Відобразіть відфільтровану «чисту» гармоніку поряд з початковою
-# 3. Додайте відповідні інтерактивні елементи (чекбокс показу, параметри фільтру тощо) та оновіть існуючі: відфільтрована гармоніка має оновлюватись разом з початковою.
 # Завдання 3
 # 1. Реалізуйте завдання 1 за допомогою сучасних графічних бібліотек на ваш вибір: Plotly, Bokeh, Altair тощо. Додайте декілька вікон для візуалізації замість одного, спадне меню (drop-down menu) та інші інтерактивні елементи на власний розсуд.
 # 2. Реалізуйте ваш власний фільтр, використовуючи виключно Python (а також numpy, але виключно для операцій з масивами numpy.ndarray). Застосуйте фільтр
+
 # Корисні посилання
 # https://matplotlib.org/stable/gallery/widgets/index.html
 # https://docs.scipy.org/doc/scipy/reference/signal.html
