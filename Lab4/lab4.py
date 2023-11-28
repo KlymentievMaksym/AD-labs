@@ -63,7 +63,7 @@ line2, = ax0.plot(t, f1(t, init_amplitude, init_frequency, init_phase, init_nois
 b, a = signal.butter(4, init_filter, btype='low')#, analog=False)
 
 filtered_harmonic = signal.lfilter(b, a, f1(t, init_amplitude, init_frequency, init_phase, init_noise_mean, init_noise_covariance))
-line3, = ax1.plot(t, filtered_harmonic, lw=2)
+line3, = ax1.plot(t, filtered_harmonic, visible=False, lw=2)
 
 ax0.set_xlabel('Time [s]')
 ax0.set_title('Harmonic')
@@ -139,7 +139,7 @@ flt_slider = Slider(
 )
 
 rax = fig.add_axes([0.40, 0.82, 0.35, 0.12])
-check = CheckButtons(rax, ('Harmonic', 'Harmonic via noise'), (True, False))
+check = CheckButtons(rax, ('Harmonic via noise', 'Harmonic filtered'), (False, False))
 
 # The function to be called anytime a slider's value changes
 def update(val):
@@ -157,10 +157,11 @@ def update(val):
 
 
 def func(label):
-    if label == 'Harmonic':
+    if label == 'Harmonic via noise':
         line.set_visible(not line.get_visible())
-    elif label == 'Harmonic via noise':
         line2.set_visible(not line2.get_visible())
+    elif label == 'Harmonic filtered':
+        line3.set_visible(not line3.get_visible())
     plt.draw()
 
 # register the update function with each slider
