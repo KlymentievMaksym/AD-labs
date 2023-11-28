@@ -29,6 +29,11 @@
 # 2. Відобразіть відфільтровану «чисту» гармоніку поряд з початковою
 # 3. Додайте відповідні інтерактивні елементи (чекбокс показу, параметри фільтру тощо) та оновіть існуючі: відфільтрована гармоніка має оновлюватись разом з початковою.
 
+# Завдання 3
+# 1. Реалізуйте завдання 1 за допомогою сучасних графічних бібліотек на ваш вибір: Plotly, Bokeh, Altair тощо. Додайте декілька вікон для візуалізації замість одного, спадне меню (drop-down menu) та інші інтерактивні елементи на власний розсуд.
+# 2. Реалізуйте ваш власний фільтр, використовуючи виключно Python (а також numpy, але виключно для операцій з масивами numpy.ndarray). Застосуйте фільтр
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons, Button, Slider
@@ -125,7 +130,7 @@ noiscovar_slider = Slider(
     label="Covar",
     valmin=-5,
     valmax=5,
-    valinit=init_noise_mean,
+    valinit=init_noise_covariance,
     orientation="vertical",
     color='#FF5722'
 )
@@ -191,12 +196,7 @@ button.on_clicked(reset)
 
 plt.show()
 
-# print(line2.get_ydata().size)
-
-
-# Завдання 3
-# 1. Реалізуйте завдання 1 за допомогою сучасних графічних бібліотек на ваш вибір: Plotly, Bokeh, Altair тощо. Додайте декілька вікон для візуалізації замість одного, спадне меню (drop-down menu) та інші інтерактивні елементи на власний розсуд.
-# 2. Реалізуйте ваш власний фільтр, використовуючи виключно Python (а також numpy, але виключно для операцій з масивами numpy.ndarray). Застосуйте фільтр
+# print(line2.get_ydata().size
 
 # Корисні посилання
 # https://matplotlib.org/stable/gallery/widgets/index.html
