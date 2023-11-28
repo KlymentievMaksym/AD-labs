@@ -107,25 +107,27 @@ phas_slider = Slider(
 )
 
 # Make a vertically oriented slider to control the Noise mean
-nmamp = fig.add_axes([0.16, 0.35, 0.0225, 0.53])
+nmamp = fig.add_axes([0.15, 0.35, 0.0225, 0.53])
 noismean_slider = Slider(
     ax=nmamp,
     label="Mean",
     valmin=-5,
     valmax=5,
     valinit=init_noise_mean,
-    orientation="vertical"
+    orientation="vertical",
+    color='#3F51B5'
 )
 
 # Make a vertically oriented slider to control the Noise covariance
-ncamp = fig.add_axes([0.09, 0.35, 0.0225, 0.53])
+ncamp = fig.add_axes([0.08, 0.35, 0.0225, 0.53])
 noiscovar_slider = Slider(
     ax=ncamp,
     label="Covar",
     valmin=-5,
     valmax=5,
     valinit=init_noise_mean,
-    orientation="vertical"
+    orientation="vertical",
+    color='#FF5722'
 )
 
 fltamp = fig.add_axes([0.95, 0.35, 0.0225, 0.53])
