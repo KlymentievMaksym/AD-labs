@@ -44,7 +44,7 @@ def f(t, amplitude, frequency, phase): # harmonic
     return amplitude * np.sin(2 * np.pi * frequency * t + phase)
 
 def f1(t, amplitude, frequency, phase, noise_mean, noise_covariance): # harmonic_with_noise
-    noise = np.random.uniform(noise_mean, noise_covariance, len(t))
+    noise = np.random.normal(noise_mean, noise_covariance, len(t))
     return amplitude * np.sin(2 * np.pi * frequency * t + phase) + noise
 
 t = np.linspace(0, 1, 1000)
@@ -60,9 +60,9 @@ init_filter = 0.03
 # Create the figure and the line that we will manipulate
 fig, (ax0, ax1) = plt.subplots(1, 2)
 
-line, = ax0.plot(t, f(t, init_amplitude, init_frequency, init_phase), lw=2)
 
-line2, = ax0.plot(t, f1(t, init_amplitude, init_frequency, init_phase, init_noise_mean, init_noise_covariance), visible=False, lw=2)
+line2, = ax0.plot(t, f1(t, init_amplitude, init_frequency, init_phase, init_noise_mean, init_noise_covariance), visible=False, color='#FF5722', lw=2)
+line, = ax0.plot(t, f(t, init_amplitude, init_frequency, init_phase), color='#3F51B5', lw=2)
 
 # b, a = signal.iirfilter(3, 0.5, btype='low')
 b, a = signal.butter(4, init_filter, btype='low')#, analog=False)
@@ -128,7 +128,7 @@ ncamp = fig.add_axes([0.08, 0.35, 0.0225, 0.53])
 noiscovar_slider = Slider(
     ax=ncamp,
     label="Covar",
-    valmin=-5,
+    valmin=0,
     valmax=5,
     valinit=init_noise_covariance,
     orientation="vertical",
@@ -153,9 +153,10 @@ def update(val):
     
     b, a = signal.butter(4, flt_slider.val, btype='low')# , analog=False)
     
-    line.set_ydata(f(t, amp_slider.val, freq_slider.val, phas_slider.val))
+    
     
     line2.set_ydata(f1(t, amp_slider.val, freq_slider.val, phas_slider.val, noismean_slider.val, noiscovar_slider.val))
+    line.set_ydata(f(t, amp_slider.val, freq_slider.val, phas_slider.val))
     
     filtered_harmonic = signal.lfilter(b, a, f1(t, amp_slider.val, freq_slider.val, phas_slider.val, noismean_slider.val, noiscovar_slider.val))
     line3.set_ydata(filtered_harmonic)
@@ -165,7 +166,7 @@ def update(val):
 
 def func(label):
     if label == 'Harmonic via noise':
-        line.set_visible(not line.get_visible())
+        # line.set_visible(not line.get_visible())
         line2.set_visible(not line2.get_visible())
     elif label == 'Harmonic filtered':
         line3.set_visible(not line3.get_visible())
