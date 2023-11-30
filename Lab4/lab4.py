@@ -199,8 +199,19 @@ class MPLTTask():
         self.noismean_slider.reset()
         self.noiscovar_slider.reset()
         self.flt_slider.reset()
+        
     
-    # print(line2.get_ydata().size
+    def register_update(self):
+        # register the update function with each slider
+        self.check.on_clicked(self.func)
+        self.freq_slider.on_changed(self.update)
+        self.amp_slider.on_changed(self.update)
+        self.phas_slider.on_changed(self.update)
+        self.noismean_slider.on_changed(self.update)
+        self.noiscovar_slider.on_changed(self.update)
+        self.flt_slider.on_changed(self.update)
+        self.button.on_clicked(self.reset)
+    
     
     # Корисні посилання
     # https://matplotlib.org/stable/gallery/widgets/index.html
@@ -209,17 +220,8 @@ class MPLTTask():
     # https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html
     # https://altair-viz.github.io/user_guide/interactions.html
 
+
 matplotapp = MPLTTask()
 matplotapp.create_figure()
-
-# register the update function with each slider
-matplotapp.check.on_clicked(matplotapp.func)
-matplotapp.freq_slider.on_changed(matplotapp.update)
-matplotapp.amp_slider.on_changed(matplotapp.update)
-matplotapp.phas_slider.on_changed(matplotapp.update)
-matplotapp.noismean_slider.on_changed(matplotapp.update)
-matplotapp.noiscovar_slider.on_changed(matplotapp.update)
-matplotapp.flt_slider.on_changed(matplotapp.update)
-matplotapp.button.on_clicked(matplotapp.reset)
-
+matplotapp.register_update()
 plt.show()
