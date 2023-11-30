@@ -1,12 +1,12 @@
 __pycache__/
 
-Lab1/Csv
-Lab1/__pycache__/
-
 Lab2/Csv
 Lab2/__pycache__/
-Lab2/Lab2Env/
-Lab2/test.py
+
+Lab3/Csv
+Lab3/__pycache__/
+Lab3/Lab2Env/
+Lab3/test.py
 
 */.ipynb_checkpoints
 
