@@ -168,10 +168,7 @@ class MPLTTask():
     
     # The function to be called anytime a slider's value changes
     def update(self, val):
-        
         b, a = signal.butter(4, self.flt_slider.val, btype='low')# , analog=False)
-        
-        
         
         self.line2.set_ydata(self.f1(self.t, self.amp_slider.val, self.freq_slider.val, self.phas_slider.val, self.noismean_slider.val, self.noiscovar_slider.val))
         self.line.set_ydata(self.f(self.t, self.amp_slider.val, self.freq_slider.val, self.phas_slider.val))
@@ -211,17 +208,16 @@ class MPLTTask():
         self.noiscovar_slider.on_changed(self.update)
         self.flt_slider.on_changed(self.update)
         self.button.on_clicked(self.reset)
-    
-    
-    # Корисні посилання
-    # https://matplotlib.org/stable/gallery/widgets/index.html
-    # https://docs.scipy.org/doc/scipy/reference/signal.html
-    # https://plotly.com/python/#controls
-    # https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html
-    # https://altair-viz.github.io/user_guide/interactions.html
 
 
 matplotapp = MPLTTask()
 matplotapp.create_figure()
 matplotapp.register_update()
 plt.show()
+
+# Корисні посилання
+# https://matplotlib.org/stable/gallery/widgets/index.html
+# https://docs.scipy.org/doc/scipy/reference/signal.html
+# https://plotly.com/python/#controls
+# https://docs.bokeh.org/en/latest/docs/user_guide/interaction/widgets.html
+# https://altair-viz.github.io/user_guide/interactions.html
