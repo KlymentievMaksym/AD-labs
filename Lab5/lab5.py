@@ -50,9 +50,17 @@ class MPLTTask():
         self.init_noise_mean = 0
         self.init_noise_covariance = 0
         self.init_filter = 0.03
+        self.init_filter_m = 50
         self.prev_mean = None
         self.prev_covar = None
+    
         
+    def my_filter(self, data, window_size):
+        # Apply a simple moving average filter
+        kernel = np.ones(window_size) / window_size
+        filtered_data = np.convolve(data, kernel, mode='same')
+        return filtered_data
+    
     
     def check_noise_need(self, noise_mean, noise_covar):
         if self.prev_mean == noise_mean and self.prev_covar == noise_covar: return False
@@ -82,15 +90,21 @@ class MPLTTask():
         # b, a = signal.iirfilter(3, 0.5, btype='low')
         b, a = signal.butter(4, self.init_filter, btype='low')#, analog=False)
         
+        my_filtered_harmonic = self.my_filter(self.f1(self.t, self.init_amplitude, self.init_frequency, self.init_phase, self.init_noise_mean, self.init_noise_covariance), int(round(self.init_filter_m)))
+        self.line4, = ax1.plot(self.t, my_filtered_harmonic, visible=False, lw=2)
+        
         filtered_harmonic = signal.lfilter(b, a, self.f1(self.t, self.init_amplitude, self.init_frequency, self.init_phase, self.init_noise_mean, self.init_noise_covariance))
         self.line3, = ax1.plot(self.t, filtered_harmonic, visible=False, lw=2)
         
+        
+        
         ax0.set_xlabel('Time [s]')
         ax0.set_title('Harmonic')
+        ax1.set_xlabel('Time [s]')
         ax1.set_title('Filtered Harmonic')
         
         # adjust the main plot to make room for the sliders
-        self.fig.subplots_adjust(left=0.25, bottom=0.35, top=0.75)
+        self.fig.subplots_adjust(left=0.25, bottom=0.35, top=0.75, right=0.85)
         
         # Make a horizontal oriented slider to control the amplitude
         axamp = self.fig.add_axes([0.25, 0.2, 0.65, 0.03])
@@ -159,9 +173,18 @@ class MPLTTask():
             valinit=self.init_filter,
             orientation="vertical"
         )
+        fltmamp = self.fig.add_axes([0.87, 0.35, 0.0225, 0.53])
+        self.flt_m_slider = Slider(
+            ax=fltmamp,
+            label="My Filter",
+            valmin=1,
+            valmax=200,
+            valinit=self.init_filter_m,
+            orientation="vertical"
+        )
         
         rax = self.fig.add_axes([0.40, 0.82, 0.35, 0.12])
-        self.check = CheckButtons(rax, ('Harmonic via noise', 'Harmonic filtered'), (False, False))
+        self.check = CheckButtons(rax, ('Harmonic via noise', 'Harmonic filtered', 'Harmonic via my filter'), (False, False, False))
         
         resetax = self.fig.add_axes([0.8, 0.025, 0.1, 0.04])
         self.button = Button(resetax, 'Reset', hovercolor='0.975')
@@ -172,6 +195,9 @@ class MPLTTask():
         
         self.line2.set_ydata(self.f1(self.t, self.amp_slider.val, self.freq_slider.val, self.phas_slider.val, self.noismean_slider.val, self.noiscovar_slider.val))
         self.line.set_ydata(self.f(self.t, self.amp_slider.val, self.freq_slider.val, self.phas_slider.val))
+        
+        my_filtered_harmonic = self.my_filter(self.f1(self.t, self.amp_slider.val, self.freq_slider.val, self.phas_slider.val, self.noismean_slider.val, self.noiscovar_slider.val), int(round(self.flt_m_slider.val)))
+        self.line4.set_ydata(my_filtered_harmonic)
         
         filtered_harmonic = signal.lfilter(b, a, self.f1(self.t, self.amp_slider.val, self.freq_slider.val, self.phas_slider.val, self.noismean_slider.val, self.noiscovar_slider.val))
         self.line3.set_ydata(filtered_harmonic)
@@ -185,6 +211,8 @@ class MPLTTask():
             self.line2.set_visible(not self.line2.get_visible())
         elif label == 'Harmonic filtered':
             self.line3.set_visible(not self.line3.get_visible())
+        elif label == 'Harmonic via my filter':
+            self.line4.set_visible(not self.line4.get_visible())
         plt.draw()
     
     
@@ -196,6 +224,7 @@ class MPLTTask():
         self.noismean_slider.reset()
         self.noiscovar_slider.reset()
         self.flt_slider.reset()
+        self.flt_m_slider.reset()
         
     
     def register_update(self):
@@ -207,6 +236,7 @@ class MPLTTask():
         self.noismean_slider.on_changed(self.update)
         self.noiscovar_slider.on_changed(self.update)
         self.flt_slider.on_changed(self.update)
+        self.flt_m_slider.on_changed(self.update)
         self.button.on_clicked(self.reset)
 
 
