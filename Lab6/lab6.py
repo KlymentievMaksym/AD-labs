@@ -129,7 +129,7 @@ ax1.plot(x, gd_k * x + gd_b, color='orange', label='Оцінка методом 
 # ax2.plot(range(1, n + 1), epsilon, marker='o')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.legend()
+ax1.legend()
 plt.show()
 
 
