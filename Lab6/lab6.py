@@ -30,15 +30,14 @@ k_s = 2.5
 b_s = 10
 n = 1000
 x = np.linspace(0, 1000, n)
-y = k_s*x + b_s + np.random.normal(0, 100, x.shape[0])
+y = k_s*x + b_s + np.random.normal(0, 10, x.shape[0])
 
 def least_squares(x, y):
     k, b, sum_up, sum_down = 0, 0, 0, 0
     
     for i in range(x.shape[0]):
         sum_up += (x[i]-x.mean())*(y[i]-y.mean())
-    for j in range(x.shape[0]):
-        sum_down += (x[j]-x.mean())**2
+        sum_down += (x[i]-x.mean())**2
     k = sum_up/sum_down
     b = y.mean() - k*x.mean()
     return k, b
@@ -53,28 +52,27 @@ print(f"Оцінка методом найменших квадратів: k = {
 polyfit_k, polyfit_b = np.polyfit(x, y, 1)
 print(f"Оцінка за допомогою np.polyfit: k = {polyfit_k}, b = {polyfit_b}")
 
+def clip_gradients(gradient, threshold):
+        if gradient > threshold:
+            return threshold
+        elif gradient < -threshold:
+            return -threshold
+        else:
+            return gradient
 
-plt.scatter(x, y, label='Згенеровані дані')
-plt.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
-plt.plot(x, ks * x + bs, color='green', label='Оцінка методом найменших квадратів')
-plt.plot(x, polyfit_k * x + polyfit_b, color='purple', label='Оцінка за допомогою np.polyfit')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
-plt.show()
-
-"""
-def gradient_descent(x, y, learning_rate=0.01, n_iter=1000):
-    k, b = 0, 0
-    m = len(x)
-
-    for _ in range(n_iter):
-        y_pred = k * x + b
-        error = y_pred - y
-        k -= (2 / m) * learning_rate * np.dot(error, x)
-        b -= (2 / m) * learning_rate * np.sum(error)
-
-    return k, b
+def gradient_descent(x, y, learning_rate=0.0001, n_iter=1000):
+    b0 = 0
+    b1 = 0
+    i = 0
+    
+    for i in range(x.shape[0]):
+        y0 = b0 + b1*x
+        dLdb0 = -2 * np.mean(y-y0)
+        dLdb1 = -2 * np.mean(x*(y-y0))
+        b0 = b0 - learning_rate * dLdb0
+        b1 = b1 - learning_rate * dLdb1
+    
+    return b1, b0
 
 # Знайдемо оцінки параметрів за допомогою градієнтного спуску
 gd_k, gd_b = gradient_descent(x, y)
@@ -83,7 +81,7 @@ print(f"Оцінка методом градієнтного спуску: k = {
 
 plt.scatter(x, y, label='Згенеровані дані')
 plt.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
-plt.plot(x, estimated_k * x + estimated_b, color='green', label='Оцінка методом найменших квадратів')
+plt.plot(x, ks * x + bs, color='green', label='Оцінка методом найменших квадратів')
 plt.plot(x, polyfit_k * x + polyfit_b, color='purple', label='Оцінка за допомогою np.polyfit')
 plt.plot(x, gd_k * x + gd_b, color='orange', label='Оцінка методом градієнтного спуску')
 plt.xlabel('x')
@@ -92,31 +90,30 @@ plt.legend()
 plt.show()
 
 
-def compute_cost(x, y, k, b):
-    return np.mean((k * x + b - y) ** 2)
+# def compute_cost(x, y, k, b):
+#     return np.mean((k * x + b - y) ** 2)
 
-def gradient_descent_with_cost(x, y, learning_rate=0.01, n_iter=1000):
-    k, b = 0, 0
-    m = len(x)
-    costs = []
+# def gradient_descent_with_cost(x, y, learning_rate=0.01, n_iter=1000):
+#     k, b = 0, 0
+#     m = len(x)
+#     costs = []
 
-    for _ in range(n_iter):
-        y_pred = k * x + b
-        error = y_pred - y
-        k -= (2 / m) * learning_rate * np.dot(error, x)
-        b -= (2 / m) * learning_rate * np.sum(error)
-        cost = compute_cost(x, y, k, b)
-        costs.append(cost)
+#     for _ in range(n_iter):
+#         y_pred = k * x + b
+#         error = y_pred - y
+#         k -= (2 / m) * learning_rate * np.dot(error, x)
+#         b -= (2 / m) * learning_rate * np.sum(error)
+#         cost = compute_cost(x, y, k, b)
+#         costs.append(cost)
 
-    return k, b, costs
+#     return k, b, costs
 
-# Знайдемо оцінки параметрів та графік похибки
-gd_k, gd_b, costs = gradient_descent_with_cost(x, y)
+# # Знайдемо оцінки параметрів та графік похибки
+# gd_k, gd_b, costs = gradient_descent_with_cost(x, y)
 
-# Відображення графіка похибки
-plt.plot(range(1, n + 1), costs, marker='o')
-plt.xlabel('Кількість ітерацій')
-plt.ylabel('Похибка')
-plt.title('Графік похибки від кількості ітерацій')
-plt.show()
-"""
+# # Відображення графіка похибки
+# plt.plot(range(1, n + 1), costs, marker='o')
+# plt.xlabel('Кількість ітерацій')
+# plt.ylabel('Похибка')
+# plt.title('Графік похибки від кількості ітерацій')
+# plt.show()
