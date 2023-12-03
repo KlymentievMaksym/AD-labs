@@ -65,12 +65,13 @@ def gradient_descent(x, y, learning_rate=0.0001, n_iter=1000):
     b1 = 0
     i = 0
     
-    for i in range(x.shape[0]):
+    while i != n_iter:
         y0 = b0 + b1*x
         dLdb0 = -2 * np.mean(y-y0)
         dLdb1 = -2 * np.mean(x*(y-y0))
         b0 = b0 - learning_rate * dLdb0
         b1 = b1 - learning_rate * dLdb1
+        i += 1
     
     return b1, b0
 
