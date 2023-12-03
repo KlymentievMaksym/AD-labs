@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numba import njit
 
 # Завдання 1 (2б):
 # 1. Згенеруйте двовимірні дані (x, y) за допомогою numpy.random : бажано, щоб розподіл
@@ -29,7 +30,7 @@ import matplotlib.pyplot as plt
 k_s = 2.5
 b_s = 10
 n = 1000
-x = np.linspace(0, 1000, n)
+x = np.linspace(0, 500, n)
 y = k_s*x + b_s + np.random.normal(0, 10, x.shape[0])
 
 def least_squares(x, y):
@@ -52,39 +53,80 @@ print(f"Оцінка методом найменших квадратів: k = {
 polyfit_k, polyfit_b = np.polyfit(x, y, 1)
 print(f"Оцінка за допомогою np.polyfit: k = {polyfit_k}, b = {polyfit_b}")
 
-def clip_gradients(gradient, threshold):
-        if gradient > threshold:
-            return threshold
-        elif gradient < -threshold:
-            return -threshold
-        else:
-            return gradient
+@njit(nogil=True)
+def not_in_treshhold(element, treshhold):
+    # print(element, treshhold)
+    if (abs(element) < treshhold):
+        return True
+    return False
 
-def gradient_descent(x, y, learning_rate=0.0001, n_iter=1000):
-    b0 = 0
-    b1 = 0
+@njit(nogil=True)
+def gradient_descent(x, y, learning_rate_k=0.00000001, learning_rate_b=0.001, treshhold=1e-4, n_iter=150000, epsilon_needed=False, cost_needed=False):
+    b = 0
+    k = 0
     i = 0
+    stop = False
     
-    while i != n_iter:
-        y0 = b0 + b1*x
-        dLdb0 = -2 * np.mean(y-y0)
-        dLdb1 = -2 * np.mean(x*(y-y0))
-        b0 = b0 - learning_rate * dLdb0
-        b1 = b1 - learning_rate * dLdb1
+    
+    while i != n_iter and not stop:
+        y0 = b + k*x
+        # if i == 0:
+        #     epsilon = [b + k*x]
+        dLdb = -2 * np.mean(y-y0)
+        dLdk = -2 * np.mean(x*(y-y0))
+        # print(dLdb, dLdk)
+        b = b - learning_rate_b * dLdb
+        k = k - learning_rate_k * dLdk
+        
+        # if epsilon_needed:
+        #     epsilon += [np.mean((y0 - y) ** 2)]
+        
+        stop = not_in_treshhold(dLdk, treshhold)
+        if not stop:
+            stop = not_in_treshhold(dLdb, treshhold)
+        
         i += 1
-    
-    return b1, b0
+    # print(i)
+    if cost_needed:
+        return [k, b, i]
+    # elif epsilon_needed:
+    #     return [k, b, epsilon]
+    else:
+        return [k, b]
 
 # Знайдемо оцінки параметрів за допомогою градієнтного спуску
-gd_k, gd_b = gradient_descent(x, y)
+gd_k, gd_b = gradient_descent(x, y, epsilon_needed=False) # , epsilon
 print(f"Оцінка методом градієнтного спуску: k = {gd_k}, b = {gd_b}")
 
 
-plt.scatter(x, y, label='Згенеровані дані')
-plt.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
-plt.plot(x, ks * x + bs, color='green', label='Оцінка методом найменших квадратів')
-plt.plot(x, polyfit_k * x + polyfit_b, color='purple', label='Оцінка за допомогою np.polyfit')
-plt.plot(x, gd_k * x + gd_b, color='orange', label='Оцінка методом градієнтного спуску')
+@njit(nogil=True)
+def search(k_s, b_s, polyfit_k, polyfit_b):
+    lrn_rates_to_try = [1e-15, 1e-12, 1e-9, 1e-6, 1e-3, 1e-2]
+    n_iters_to_try = [1e6, 1e4, 1e2]
+    min_cost = np.inf
+    
+    for lrn_rate_k in lrn_rates_to_try:
+        for lrn_rate_b in lrn_rates_to_try: 
+            for n_iter in n_iters_to_try:
+                [k1, b1, cost] = gradient_descent(x, y, learning_rate_k=lrn_rate_k, learning_rate_b=lrn_rate_b, n_iter=n_iter, cost_needed=True)
+                # print(k1, b1, cost)
+                if min_cost >= cost and polyfit_k - 1e-3 < k1 < polyfit_k + 1e-3 and polyfit_b - 1 < b1 < polyfit_b + 1: 
+                    min_cost = cost
+                    the_best_way = [lrn_rate_k, lrn_rate_b, n_iter, cost]
+                    print(k1, b1)
+                    print(lrn_rate_k, lrn_rate_b, n_iter, cost, '\n')
+    return the_best_way
+
+# the_best_way = search(k_s, b_s, polyfit_k, polyfit_b)                
+
+f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+
+ax1.scatter(x, y, label='Згенеровані дані')
+ax1.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
+ax1.plot(x, ks * x + bs, color='green', label='Оцінка методом найменших квадратів')
+ax1.plot(x, polyfit_k * x + polyfit_b, color='purple', label='Оцінка за допомогою np.polyfit')
+ax1.plot(x, gd_k * x + gd_b, color='orange', label='Оцінка методом градієнтного спуску')
+# ax2.plot(range(1, n + 1), epsilon, marker='o')
 plt.xlabel('x')
 plt.ylabel('y')
 plt.legend()
