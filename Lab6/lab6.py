@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Завдання 1 (2б):
-# 1. Згенеруйте двовимірні дані (xx, yy) за допомогою numpy.random : бажано, щоб розподіл
-# точок був навколо деякої наперед заданої прямої (yy = kk + bb) для подальшого аналізу
+# 1. Згенеруйте двовимірні дані (x, y) за допомогою numpy.random : бажано, щоб розподіл
+# точок був навколо деякої наперед заданої прямої (y = k*x + b) для подальшого аналізу
 # результатів.
 # 2. Напишіть функцію, яка реалізує метод найменших квадратів для пошуку оптимальних
 # оцінок kk� та bb�.
@@ -29,25 +29,25 @@ import matplotlib.pyplot as plt
 k_s = 2.5
 b_s = 10
 n = 1000
-x = np.linspace(0, 1, n)
-y = k_s*x + b_s
-
-# Відображення згенерованих даних
-plt.scatter(x, y, label='Згенеровані дані')
-plt.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
-plt.show()
+x = np.linspace(0, 1000, n)
+y = k_s*x + b_s + np.random.normal(0, 100, x.shape[0])
 
 def least_squares(x, y):
-    A = np.vstack([x, np.ones(len(x))]).T
-    k, b = np.linalg.lstsq(A, y, rcond=None)[0]
+    k, b, sum_up, sum_down = 0, 0, 0, 0
+    
+    for i in range(x.shape[0]):
+        sum_up += (x[i]-x.mean())*(y[i]-y.mean())
+    for j in range(x.shape[0]):
+        sum_down += (x[j]-x.mean())**2
+    k = sum_up/sum_down
+    b = y.mean() - k*x.mean()
     return k, b
 
+print(f"Початкові параметри: k = {k_s}, b = {b_s}")
+
 # Знайдемо оцінки параметрів
-estimated_k, estimated_b = least_squares(x, y)
-print(f"Оцінка методом найменших квадратів: k = {estimated_k}, b = {estimated_b}")
+ks, bs = least_squares(x, y)
+print(f"Оцінка методом найменших квадратів: k = {ks}, b = {bs}")
 
 # Порівняння з np.polyfit
 polyfit_k, polyfit_b = np.polyfit(x, y, 1)
@@ -56,13 +56,14 @@ print(f"Оцінка за допомогою np.polyfit: k = {polyfit_k}, b = {p
 
 plt.scatter(x, y, label='Згенеровані дані')
 plt.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
-plt.plot(x, estimated_k * x + estimated_b, color='green', label='Оцінка методом найменших квадратів')
+plt.plot(x, ks * x + bs, color='green', label='Оцінка методом найменших квадратів')
 plt.plot(x, polyfit_k * x + polyfit_b, color='purple', label='Оцінка за допомогою np.polyfit')
 plt.xlabel('x')
 plt.ylabel('y')
 plt.legend()
 plt.show()
 
+"""
 def gradient_descent(x, y, learning_rate=0.01, n_iter=1000):
     k, b = 0, 0
     m = len(x)
@@ -118,3 +119,4 @@ plt.xlabel('Кількість ітерацій')
 plt.ylabel('Похибка')
 plt.title('Графік похибки від кількості ітерацій')
 plt.show()
+"""
