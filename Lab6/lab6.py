@@ -138,47 +138,54 @@ def search(k_s, b_s, polyfit_k, polyfit_b):
     for lrn_rate_k in lrn_rates_to_try:
         for lrn_rate_b in lrn_rates_to_try: 
             for n_iter in n_iters_to_try:
-                [k1, b1, cost] = gradient_descent(x, y, learning_rate_k=lrn_rate_k, learning_rate_b=lrn_rate_b, n_iter=n_iter, cost_needed=True)
+                [k1, b1, iter_used] = gradient_descent(x, y, learning_rate_k=lrn_rate_k, learning_rate_b=lrn_rate_b, n_iter=n_iter, cost_needed=True)
                 # print(k1, b1, cost)
-                if min_cost >= cost and polyfit_k - 1e-3 < k1 < polyfit_k + 1e-3 and polyfit_b - 1 < b1 < polyfit_b + 1: 
-                    min_cost = cost
-                    the_best_way = [lrn_rate_k, lrn_rate_b, n_iter, cost]
-                    print(k1, b1)
-                    print(lrn_rate_k, lrn_rate_b, n_iter, cost, '\n')
+                if min_cost >= iter_used and polyfit_k - 1e-3 < k1 < polyfit_k + 1e-3 and polyfit_b - 1 < b1 < polyfit_b + 1: 
+                    min_cost = iter_used
+                    the_best_way = [lrn_rate_k, lrn_rate_b, n_iter, iter_used]
+                    print('k:', k1, 'b:', b1)
+                    print('learning rate for k:', lrn_rate_k, 'learning rate for b:', lrn_rate_b, 'n iterations: ', n_iter, 'iterations used: ', iter_used, '\n')
     return the_best_way
 
-# the_best_way = search(k_s, b_s, polyfit_k, polyfit_b)                
+the_best_way = search(k_s, b_s, polyfit_k, polyfit_b)                
 
 
 @njit(nogil=True)
-def split_list_into_two(array, lst_for_mean, lst_for_k):
+def split_list_into_two(array):
     # for i in range(len(lst)):
     #     lst_for_mean += [lst[i][0]]
     #     lst_for_k += [lst[i][1]]
+    i = 0
     for mean, k in array:
-        lst_for_mean += np.array([mean])
-        lst_for_k += np.array([k])
+        if i == 0:
+            lst_for_mean = np.array([mean])
+            lst_for_k = np.array([k])
+        else:
+            lst_for_mean = np.concatenate((lst_for_mean, np.array([mean])))
+            lst_for_k = np.concatenate((lst_for_k, np.array([k])))
+        i += 1
     return lst_for_mean, lst_for_k
 
 
 gd_k_c, gd_b_c, epsilon = gradient_descent_with_cost(x, y)
 
-lst_for_mean = np.array([])
-lst_for_k = np.array([])
+# lst_for_mean = np.array([])
+# lst_for_k = np.array([])
 
-lst_for_mean, lst_for_k = split_list_into_two(np.array(epsilon), lst_for_mean, lst_for_k)
+lst_for_mean1, lst_for_k1 = split_list_into_two(np.array(epsilon))#, lst_for_mean, lst_for_k)
 
-f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+f, (ax1, ax2) = plt.subplots(1, 2)
 
 ax1.scatter(x, y, label='Згенеровані дані')
 ax1.plot(x, k_s * x + b_s, color='red', label='Пряма')
 ax1.plot(x, ks * x + bs, color='green', label='Метод найменших квадратів')
 ax1.plot(x, polyfit_k * x + polyfit_b, color='purple', label='np.polyfit')
 ax1.plot(x, gd_k * x + gd_b, color='orange', label='Градієнтний спуск')
-ax2.plot(lst_for_mean, lst_for_k, marker='o')
+ax2.plot(lst_for_mean1, lst_for_k1, label='Похибка від кількості')
 plt.xlabel('x')
 plt.ylabel('y')
 ax1.legend()
+ax2.legend()
 plt.show()
 
 
