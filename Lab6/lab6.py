@@ -61,7 +61,7 @@ def not_in_treshhold(element, treshhold):
     return False
 
 @njit(nogil=True)
-def gradient_descent(x, y, learning_rate_k=0.00000001, learning_rate_b=0.001, treshhold=1e-4, n_iter=150000, epsilon_needed=False, cost_needed=False):
+def gradient_descent(x, y, learning_rate_k=0.00000001, learning_rate_b=0.001, treshhold=1e-4, n_iter=150000, cost_needed=False):
     b = 0
     k = 0
     i = 0
@@ -71,15 +71,15 @@ def gradient_descent(x, y, learning_rate_k=0.00000001, learning_rate_b=0.001, tr
     while i != n_iter and not stop:
         y0 = b + k*x
         # if i == 0:
-        #     epsilon = [b + k*x]
+        #     epsilon = [np.mean((y0 - y) ** 2), i]
         dLdb = -2 * np.mean(y-y0)
         dLdk = -2 * np.mean(x*(y-y0))
         # print(dLdb, dLdk)
         b = b - learning_rate_b * dLdb
         k = k - learning_rate_k * dLdk
         
-        # if epsilon_needed:
-        #     epsilon += [np.mean((y0 - y) ** 2)]
+        # if epsilon_needed and i != 0:
+        #     epsilon += [np.mean((y0 - y) ** 2), i]
         
         stop = not_in_treshhold(dLdk, treshhold)
         if not stop:
@@ -94,8 +94,38 @@ def gradient_descent(x, y, learning_rate_k=0.00000001, learning_rate_b=0.001, tr
     else:
         return [k, b]
 
+
+@njit(nogil=True)
+def gradient_descent_with_cost(x, y, learning_rate_k=0.00000001, learning_rate_b=0.001, treshhold=1e-4, n_iter=150000, cost_needed=False):
+    b = 0
+    k = 0
+    i = 0
+    stop = False
+    
+    
+    while i != n_iter and not stop:
+        y0 = b + k*x
+        if i == 0:
+            epsilon = [[np.mean((y0 - y) ** 2), i]]
+        dLdb = -2 * np.mean(y-y0)
+        dLdk = -2 * np.mean(x*(y-y0))
+        # print(dLdb, dLdk)
+        b = b - learning_rate_b * dLdb
+        k = k - learning_rate_k * dLdk
+        
+        if i != 0:
+            epsilon += [[np.mean((y0 - y) ** 2), i]]
+        
+        stop = not_in_treshhold(dLdk, treshhold)
+        if not stop:
+            stop = not_in_treshhold(dLdb, treshhold)
+        
+        i += 1
+    # print(i)
+    return k, b, epsilon
+
 # Знайдемо оцінки параметрів за допомогою градієнтного спуску
-gd_k, gd_b = gradient_descent(x, y, epsilon_needed=False) # , epsilon
+gd_k, gd_b = gradient_descent(x, y) # , epsilon
 print(f"Оцінка методом градієнтного спуску: k = {gd_k}, b = {gd_b}")
 
 
@@ -119,14 +149,33 @@ def search(k_s, b_s, polyfit_k, polyfit_b):
 
 # the_best_way = search(k_s, b_s, polyfit_k, polyfit_b)                
 
+
+@njit(nogil=True)
+def split_list_into_two(array, lst_for_mean, lst_for_k):
+    # for i in range(len(lst)):
+    #     lst_for_mean += [lst[i][0]]
+    #     lst_for_k += [lst[i][1]]
+    for mean, k in array:
+        lst_for_mean += np.array([mean])
+        lst_for_k += np.array([k])
+    return lst_for_mean, lst_for_k
+
+
+gd_k_c, gd_b_c, epsilon = gradient_descent_with_cost(x, y)
+
+lst_for_mean = np.array([])
+lst_for_k = np.array([])
+
+lst_for_mean, lst_for_k = split_list_into_two(np.array(epsilon), lst_for_mean, lst_for_k)
+
 f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
 
 ax1.scatter(x, y, label='Згенеровані дані')
-ax1.plot(x, k_s * x + b_s, color='red', label='Справжня пряма')
-ax1.plot(x, ks * x + bs, color='green', label='Оцінка методом найменших квадратів')
-ax1.plot(x, polyfit_k * x + polyfit_b, color='purple', label='Оцінка за допомогою np.polyfit')
-ax1.plot(x, gd_k * x + gd_b, color='orange', label='Оцінка методом градієнтного спуску')
-# ax2.plot(range(1, n + 1), epsilon, marker='o')
+ax1.plot(x, k_s * x + b_s, color='red', label='Пряма')
+ax1.plot(x, ks * x + bs, color='green', label='Метод найменших квадратів')
+ax1.plot(x, polyfit_k * x + polyfit_b, color='purple', label='np.polyfit')
+ax1.plot(x, gd_k * x + gd_b, color='orange', label='Градієнтний спуск')
+ax2.plot(lst_for_mean, lst_for_k, marker='o')
 plt.xlabel('x')
 plt.ylabel('y')
 ax1.legend()
