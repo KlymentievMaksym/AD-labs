@@ -13,6 +13,25 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+# import command
+import datetime
+from sentinelhub import SHConfig
+
+from sentinelhub import (
+    CRS,
+    BBox,
+    DataCollection,
+    DownloadRequest,
+        MimeType,
+    MosaickingOrder,
+    SentinelHubDownloadClient,
+    SentinelHubRequest,
+    bbox_to_dimensions,
+    to_wgs84,
+)
+
+# The following is not a package. It is a file utils.py which should be in the same folder as this notebook.
+# from utils import plot_image
 
 def plot_image(
     image: np.ndarray, factor: float = 1.0, clip_range: tuple[float, float] | None = None, **kwargs: Any
@@ -26,55 +45,16 @@ def plot_image(
     ax.set_xticks([])
     ax.set_yticks([])
 
-from sentinelhub import SHConfig
-
-try:
-    os.mkdir('Results\\')
-except FileExistsError:
-    pass
-
-config = SHConfig()
-config.sh_client_id="aa98480f-8d30-4c49-95ac-68d419d09457"
-config.sh_client_secret="norshf6xP41NXVtrmUFlUOPK5gWlu0Jz"
-# config.data_folder="results//"
-config.save("my-profile")
-config = SHConfig("my-profile")
-
-
-if not config.sh_client_id or not config.sh_client_secret:
-    print("Warning! To use Process API, please provide the credentials (OAuth client ID and client secret).")
-
-import datetime
-import os
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-from sentinelhub import (
-    CRS,
-    BBox,
-    DataCollection,
-    DownloadRequest,
-        MimeType,
-    MosaickingOrder,
-    SentinelHubDownloadClient,
-    SentinelHubRequest,
-    bbox_to_dimensions,
-)
-
-# The following is not a package. It is a file utils.py which should be in the same folder as this notebook.
-# from utils import plot_image
-
-def get_tiff_file(coords_x_1, coords_y_1, coords_x_2, coords_y_2, resolution=60):
+def get_tiff_file_from_sentinel(coords_x_1, coords_y_1, coords_x_2, coords_y_2, resolution=60):
     kiyv_coords_wgs84 = (coords_x_1, coords_y_1, coords_x_2, coords_y_2)
-    
+    # kiyv_coords_wgs84 = to_wgs84(51.415883589517534,30.12370823169888, 51.44399790803582,31.7020921271763, 50.45686117062749, 31.729300891794363, 50.42971299170202,30.183927395096326, 51.415883589517534,30.12370823169888)
     # kiev_coords = np.array([29.073321247506765, 49.845775018245774, 31.986007792928522, 49.845775018245774, 31.986007792928522, 51.278667808079206, 29.073321247506765, 51.278667808079206,29.073321247506765, 49.845775018245774])
     # betsiboka_coords_wgs84 = (31.56, 31.55, 32.51, 32.58)
     
     kiyv_bbox = BBox(bbox=kiyv_coords_wgs84, crs=CRS.WGS84)
     
     betsiboka_size = bbox_to_dimensions(kiyv_bbox, resolution=resolution)
-    
+    #S2A_MSIL2A_20190821T085601_N0213_R007_T36UUB_20190821T115206
     print(f"Image shape at {resolution} m resolution: {betsiboka_size} pixels")
     
     evalscript_true_color = """
@@ -133,8 +113,36 @@ def get_tiff_file(coords_x_1, coords_y_1, coords_x_2, coords_y_2, resolution=60)
     for folder, _, filenames in os.walk(request_true_color.data_folder):
         for filename in filenames:
             print(os.path.join(folder, filename))
-            
-get_tiff_file(29.907532,50.076532, 30.797424,50.511680)
-get_tiff_file(30.797424,50.511680, 30.332565,50.600455)
-get_tiff_file(30.797424, 50.511680, 31.475830,50.224367)
-# get_tiff_file(29.907532,50.076532, 30.797424,50.511680)
+
+try:
+    os.mkdir('Results\\')
+except FileExistsError:
+    pass
+
+config = SHConfig()
+config.sh_client_id="aa98480f-8d30-4c49-95ac-68d419d09457"
+config.sh_client_secret="norshf6xP41NXVtrmUFlUOPK5gWlu0Jz"
+# config.data_folder="results//"
+config.save("my-profile")
+config = SHConfig("my-profile")
+
+
+if not config.sh_client_id or not config.sh_client_secret:
+    print("Warning! To use Process API, please provide the credentials (OAuth client ID and client secret).")
+    
+# first try
+#get_tiff_file_from_sentinel(30.279350,50.343489, 30.514870,50.465591)#(29.907532,50.076532, 30.797424,50.511680)
+#get_tiff_file_from_sentinel(30.514870,50.465591, 30.279350,50.617885)#(30.797424,50.511680, 30.332565,50.600455)
+#get_tiff_file_from_sentinel(30.514870,50.617885, 30.825920,50.329026)#(30.797424, 50.511680, 31.475830,50.224367)
+
+# idk what it is but let it stay
+# get_tiff_file_from_sentinel(29.907532,50.076532, 30.797424,50.511680)
+
+# what I chose
+get_tiff_file_from_sentinel(30.197983,50.595879, 30.571518,50.316970)
+get_tiff_file_from_sentinel(30.571518,50.316970, 30.842056,50.595879) 
+
+# # by indentificators
+# get_tiff_file_from_sentinel(30.178667516417683,49.53173120782476, 31.752783043838747,50.545333158635955)
+# get_tiff_file_from_sentinel(30.12370823169888,50.45686117062749, 31.729300891794363,51.44399790803582)
+
