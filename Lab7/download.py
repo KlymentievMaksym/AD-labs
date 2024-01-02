@@ -57,27 +57,30 @@ def get_tiff_file_from_sentinel(coords_x_1, coords_y_1, coords_x_2, coords_y_2, 
     #S2A_MSIL2A_20190821T085601_N0213_R007_T36UUB_20190821T115206
     print(f"Image shape at {resolution} m resolution: {betsiboka_size} pixels")
     
-    evalscript_true_color = """
-        //VERSION=3
+    evalscript_bands = """
+    //VERSION=3
+    function setup() {
+        return {
+            input: [{
+                bands: ["B02","B03","B04","B08"],
+            }],
+            output: {
+                bands: 4,
+            }
+        };
+    }
+
+    function evaluatePixel(sample) {
+        return [sample.B02,
+                sample.B03,
+                sample.B04,
+                sample.B08,
+                ];
+    }
+"""
     
-        function setup() {
-            return {
-                input: [{
-                    bands: ["B02", "B03", "B04"]
-                }],
-                output: {
-                    bands: 3
-                }
-            };
-        }
-    
-        function evaluatePixel(sample) {
-            return [sample.B04, sample.B03, sample.B02];
-        }
-    """
-    
-    request_true_color = SentinelHubRequest(
-        evalscript=evalscript_true_color,
+    request_bands = SentinelHubRequest(
+        evalscript=evalscript_bands,
         input_data=[
             SentinelHubRequest.input_data(
                 data_collection=DataCollection.SENTINEL2_L1C,
@@ -92,25 +95,25 @@ def get_tiff_file_from_sentinel(coords_x_1, coords_y_1, coords_x_2, coords_y_2, 
         data_folder="results//",
     )
     
-    true_color_imgs = request_true_color.get_data()
+    bands_response  = request_bands.get_data()
     
     # print(f"Returned data is of type = {type(true_color_imgs)} and length {len(true_color_imgs)}.")
     # print(f"Single element in the list is of type {type(true_color_imgs[-1])} and has shape {true_color_imgs[-1].shape}")
     
-    image = true_color_imgs[0]
+    image = bands_response[0]
     # print(f"Image type: {image.dtype}")
     
     # plot function
     # factor 1/255 to scale between 0-1
     # factor 3.5 to increase brightness
-    plot_image(image, factor=3.5 / 255, clip_range=(0, 1))
+    plot_image(image, factor=3.5 / 255, clip_range=(0, 1))# , factor=3.5 / 1e4, clip_range=(0, 1)#, factor=3.5 / 1e4, vmax=1 #, factor=3.5 / 255, clip_range=(0, 1))
     
-    request_true_color.save_data()
+    request_bands.save_data(show_progress=True)
     print(
         "The output directory has been created and a tiff file with all bands was saved into the following structure:\n"
     )
     
-    for folder, _, filenames in os.walk(request_true_color.data_folder):
+    for folder, _, filenames in os.walk(request_bands.data_folder):
         for filename in filenames:
             print(os.path.join(folder, filename))
 
